@@ -174,7 +174,7 @@ fi
 
 cat <<EOF
 
-Welcome to Freescale Community BSP
+Welcome to ARIES MSRZ BSP
 
 The Yocto Project has extensive documentation about OE including a
 reference manual which can be found at:
@@ -187,6 +187,7 @@ You can now run 'bitbake <target>'
 
 Common targets are:
     core-image-minimal
+    core-image-minimal-initramfs
 
 EOF
 
