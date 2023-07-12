@@ -7,5 +7,7 @@ FLASH_ADDRESS_FIP_msrzg2ul = "1D200"
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
-SRC_URI += "file://0001-MSRZG2UL-board-configuration.patch"
+SRC_URI += "file://0001-MSRZG2UL-board-configuration.patch \
+            file://0001-Call-spi-init-during-EMMC-boot.patch \
+            "
 

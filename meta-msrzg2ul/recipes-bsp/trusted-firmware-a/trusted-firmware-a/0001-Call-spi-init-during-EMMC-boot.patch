@@ -1,0 +1,28 @@
+From aac9d8be193c5e0352344e4a9ad560b031baeffb Mon Sep 17 00:00:00 2001
+From: Alexander Yurtsev <ay@aries-embedded.de>
+Date: Wed, 12 Jul 2023 18:25:20 +0000
+Subject: [PATCH] Call spi init during EMMC boot
+
+---
+ plat/renesas/rz/common/plat_storage.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/plat/renesas/rz/common/plat_storage.c b/plat/renesas/rz/common/plat_storage.c
+index c6a933009..b03ee2122 100755
+--- a/plat/renesas/rz/common/plat_storage.c
++++ b/plat/renesas/rz/common/plat_storage.c
+@@ -241,6 +241,7 @@ void rz_io_setup(void)
+ 				(uintptr_t) &emmc_block_spec,
+ 				&open_emmcdrv};
+ 		policies[FIP_IMAGE_ID] = emmc_fip_policy;
++		spi_multi_setup();
+ 	} else {
+ 		panic();
+ 	}
+@@ -262,4 +263,4 @@ int plat_get_image_source(unsigned int image_id, uintptr_t *dev_handle,
+ 	*dev_handle = *(policy->dev_handle);
+ 
+ 	return 0;
+-}
+\ No newline at end of file
++}
