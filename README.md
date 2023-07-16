@@ -60,6 +60,8 @@ The dunfell Poky release supports the following Linux distributions:
 In the case where the build machine's distribution is not in the list, a deployment
 of an isolated build environment using docker or podman containers is required.
 
+For more information on building with docker see README.docker.
+
 ## Build Instructions
 
 Assume that $WORK is the current working directory.
@@ -98,6 +100,7 @@ You can download all Yocto related public source to prepare the build environmen
     $ cd ..
 
     $ ln -s sources/meta-aries-msrz/scripts/setup-environment
+    $ ln -s sources/meta-aries-msrz/scripts/docker-build
 ```
 
 **1. Build procedure (Recommended):**
