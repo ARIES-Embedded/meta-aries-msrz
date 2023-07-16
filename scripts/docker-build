@@ -1,0 +1,244 @@
+#!/bin/sh
+
+# Docker Build Environment Helper Script
+#
+# Copyright (C) 2023 ARIES Embedded
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+#
+
+PROGNAME=$(basename $0)
+SHORTOPTS="cd:hilm:B:D:O:S:"
+BUILDENV=${BUILDENV:-".build.env"}
+DOCKERFILE=Dockerfile.msrz_ubuntu-20.04
+DOCKERNAME=msrz_ubuntu-20.04
+
+# default environment
+BUILD_DIR=${BUILD_DIR:-"build"}
+DISTRO=${DISTRO:-"poky"}
+DL_DIR=${DL_DIR:-"downloads"}
+SSTATE_DIR=${SSTATE_DIR:-"sstate-cache"}
+OUTPUT_DIR=${OUTPUT_DIR:-"$BUILD_DIR/deploy"}
+
+# add current dir to PATH
+PATH=$PATH:$PWD
+
+# load build environment if present
+[ ! -f "$BUILDENV" ] || . $BUILDENV
+
+usage() {
+	echo
+	echo "Docker Build Environment Helper Script"
+	echo
+	echo "Usage: $(basename $0) -h"
+	echo "    Show this help and exit"
+	echo
+	echo "Usage: $(basename $0) -l"
+	echo "    List supported machines and distros and exit"
+	echo
+	echo "Usage: $(basename $0) -i"
+	echo "    Create docker image and exit"
+	echo
+	echo "Usage: $(basename $0) -c [OPTIONS]"
+	echo "    Configure build environment and exit"
+	echo
+	echo "Options:"
+	echo "    -b <build-dir>        build directory (default 'build')"
+	echo "    -d <distro>           distro name (default 'poky')"
+	echo "    -m <machine>          machine name"
+	echo "    -D <download-dir      shared download directory (optional)"
+	echo "    -O <output-dir        output artifacts directory (optional)"
+	echo "    -S <sstate-dir        shared sstate-cache directory (optional)"
+	echo
+	echo "Usage: $(basename $0)"
+	echo "    Run the docker build environment interactively"
+	echo
+	echo "Usage: $(basename $0) -- <command> [<ARGS>]"
+	echo "    Run build command in the docker build environment and exit"
+	echo
+	echo "Environment:"
+	echo "    BUILDENV             file with build environment (default .build.env)"
+	echo "    BUILD_DIR             alternative for specifying build directory"
+	echo "    DISTRO                alternative for specifying distro name"
+	echo "    MACHINE               alternative for specifying machine name"
+	echo "    DL_DIR                alternative for specifying download directory"
+	echo "    SSTATE_DIR            alternative for specifying sstate-cache directory"
+	echo
+	echo "Examples:"
+	echo "    $(basename $0) -c -b build_mszrg2ul -m msrz2gul"
+	echo "        create build environment for msrzg2ul machine"
+	echo "        in 'build_msrzg2ul' directory"
+	echo
+	echo "    $(basename $0) -- bitbake u-boot"
+	echo "        invoke building of u-boot recipe in the default build environment"
+	echo
+	echo "    BUILDENV=msrzfive.env $(basename $0) -- bitbake core-image-minimal"
+	echo "        invoke building of core-image-minimal recipe in the non-default"
+	echo "        'msrzfive.env' build environment"
+}
+
+check_docker() {
+	docker image ls | grep $DOCKERNAME > /dev/null
+}
+
+build_docker() {
+	echo "INFO: The docker image is not present. Trying to create one..."
+
+	# locate dockerfile
+	DOCKERFILE=$(ls sources/meta-aries-msrz/scripts/$DOCKERFILE)
+
+	if [ -z "$DOCKERFILE" ]; then
+		echo "ERROR: can't find dockerfile. The script be launched from the top directory."
+		exit 1
+	fi
+
+	docker build \
+		--build-arg "host_uid=$(id -u)" \
+		--build-arg "host_gid=$(id -g)" \
+		--build-arg "USERNAME=$USER" \
+		--build-arg "TZ_VALUE=$(cat /etc/timezone)" \
+		--tag $DOCKERNAME \
+		--file $DOCKERFILE . || exit 1
+	echo "INFO: docker image $DOCKERNAME is successfully created"
+}
+
+run_docker() {
+	local WDIR DDIR SDIR ODIR
+	# mount work dir
+	WDIR="--volume $(realpath $PWD):/opt/yocto/"
+
+	# mount downloads dir
+	DDIR="--volume $(realpath $DL_DIR):/opt/downloads"
+
+	# mount sstate cache dir
+	SDIR="--volume $(realpath $SSTATE_DIR):/opt/sstate-cache"
+
+	# mount deploy dir
+	ODIR="--volume $(realpath $OUTPUT_DIR):/opt/deploy"
+
+	# run container
+	docker run --rm -it $WDIR $DDIR $ODIR -e BUILDENV=$BUILDENV $DOCKERNAME "$@"
+}
+
+ARGS=$(getopt -q --options $SHORTOPTS --name $PROGNAME -- "$@")
+
+if [ $? != 0 ]; then
+    usage
+    exit 1
+fi
+
+eval set -- "$ARGS" && unset ARGS
+
+do_list=0
+do_save=0
+
+while true; do
+	case $1 in
+	-c)	do_save=1
+		;;
+	-d)	DISTRO=$2; shift
+		;;
+	-h)
+		usage
+		exit 0
+		;;
+	-i)	if check_docker; then
+			echo "INFO: docker image $DOCKERNAME is alredy created"
+			exit
+		fi
+		build_docker
+		exit $?
+		;;
+	-l)	do_list=1
+		;;
+	-m)	MACHINE=$2; shift
+		;;
+	-B)	BUILD_DIR=$(basename $2); shift
+		;;
+	-D)	DL_DIR=$2; shift
+		;;
+	-O)	OUTPUT_DIR=$2; shift
+		;;
+	-S)	SSTATE_DIR=$2; shift
+		;;
+	--)	shift
+		break;
+	;;
+	esac
+	shift
+done
+
+if [ $do_list -eq 1 ]; then
+	echo "Supported machines:"
+	find sources -wholename '*meta-aries-msrz/docs/template/conf/*' -type d \
+		| sed s/\.conf//g | sed -r 's/^.+\///' | xargs -I% echo -e "\t%" | sort -u
+	echo
+	echo "Available distros:"
+	ls sources/poky/meta-poky/conf/distro/*.conf \
+		| sed s/\.conf//g | sed -r 's/^.+\///' | xargs -I% echo -e "\t%"
+	echo
+	exit
+fi
+
+if [ $do_save -eq 1 ]; then
+	if [ -z "$BUILD_DIR" ]; then
+		echo "ERROR: build dir is not specified or empty"
+		exit 1
+	fi
+	if [ -z "$DISTRO" ]; then
+		echo "ERROR: distro is not specified or empty"
+		exit 1
+	fi
+	if [ -z "$MACHINE" ]; then
+		echo "ERROR: machine is not specified or empty"
+		exit 1
+	fi
+
+	# create environment
+	echo "BUILD_DIR=$BUILD_DIR" > $BUILDENV
+	echo "DISTRO=$DISTRO" >> $BUILDENV
+	echo "MACHINE=$MACHINE" >> $BUILDENV
+	echo "DL_DIR=$DL_DIR" >> $BUILDENV
+	echo "SSTATE_DIR=$SSTATE_DIR" >> $BUILDENV
+	echo "OUTPUT_DIR=$OUTPUT_DIR" >> $BUILDENV
+	exit
+fi
+
+if [ -z "$MACHINE" ]; then
+	echo "ERROR: machine name is not specified."
+	usage
+	exit 1
+fi
+
+# create shared build directories
+[ -d "$DL_DIR" ] || mkdir -p $DL_DIR
+[ -d "$SSTATE_DIR" ] || mkdir -p $SSTATE_DIR
+[ -d "$OUTPUT_DIR" ] || mkdir -p $OUTPUT_DIR
+
+# build docker image if not present
+check_docker || build_docker || exit 1
+
+# check if site.conf is not patched
+if [ ! -f $BUILD_DIR/conf/site.conf.docker_save ]; then
+	mkdir -p $BUILD_DIR/conf
+
+	# create empty site.conf if there is no original file
+	[ -f $BUILD_DIR/conf/site.conf ] || touch $BUILD_DIR/conf/site.conf
+
+	# create temporary copy
+	cp $BUILD_DIR/conf/site.conf $BUILD_DIR/conf/site.conf.docker_tmp
+
+	# override shared directories
+	echo "DL_DIR = \"/opt/downloads\"" >> $BUILD_DIR/conf/site.conf.docker_tmp
+	echo "SSTATE_DIR = \"/opt/sstate-cache\"" >> $BUILD_DIR/conf/site.conf.docker_tmp
+	echo "DEPLOY_DIR_IMAGE = \"/opt/deploy\"" >> $BUILD_DIR/conf/site.conf.docker_tmp
+
+	# save original site.conf
+	mv $BUILD_DIR/conf/site.conf $BUILD_DIR/conf/site.conf.docker_save
+fi
+
+# replace site.conf with patched variant
+[ ! -f $BUILD_DIR/conf/site.conf.docker_tmp ] || mv $BUILD_DIR/conf/site.conf.docker_tmp $BUILD_DIR/conf/site.conf
+
+# run docker
+[ $# -gt 0 ] && run_docker -c "$*" || run_docker
