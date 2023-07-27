@@ -1,0 +1,21 @@
+From 4d9d5163ed41d85336a9c4935fa69374a81e9c0f Mon Sep 17 00:00:00 2001
+From: Dmitry Bazhenov <db@aries-embedded.de>
+Date: Thu, 27 Jul 2023 17:34:18 +0400
+Subject: [PATCH] remove-redundant-memset
+
+---
+ dgmodul4.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/dgmodul4.c b/dgmodul4.c
+index ab37074..21306a4 100644
+--- a/dgmodul4.c
++++ b/dgmodul4.c
+@@ -961,7 +961,6 @@ static char dgLS_Load_Offset(uint32_t *maxADD ,uint32_t *minADD, uint32_t prgSta
+ 			loadGetAddress = data;
+ 			if (prevLoadAddress != loadGetAddress)
+ 			{
+-				memset(ptr, 0xff, (loadGetAddress - prevLoadAddress));
+ 				ptr         += (loadGetAddress - prevLoadAddress);
+ 				workAdd_Max += (loadGetAddress - prevLoadAddress);
+ 			}
