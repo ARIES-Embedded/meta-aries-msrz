@@ -11,4 +11,5 @@ RDEPENDS_${PN} = "\
     ssh \
     u-boot-fw-utils \
     u-boot-default-env \
+    usb-gadgets \
     "
