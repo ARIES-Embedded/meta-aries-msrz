@@ -1,5 +1,3 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
-BOARD_msrzg2ls = "G2L"
-BOARD_msrzg2ls = "RZG2L_SMARC"
-PMIC_BOARD_msrzg2ls = "RZG2L_SMARC_PMIC"
+BOARD_msrzg2ls = "RZG2L_SMARC_PMIC"
