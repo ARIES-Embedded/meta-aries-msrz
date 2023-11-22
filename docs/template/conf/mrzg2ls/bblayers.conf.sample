@@ -16,5 +16,5 @@ BBLAYERS ?= " \
   ##OEROOT##/../meta-openembedded/meta-python \
   ##OEROOT##/../meta-openembedded/meta-multimedia \
   ##OEROOT##/../meta-aries-msrz/meta-msrz-common \
-  ##OEROOT##/../meta-aries-msrz/meta-msrzg2ls \
+  ##OEROOT##/../meta-aries-msrz/meta-mrzg2ls \
   "

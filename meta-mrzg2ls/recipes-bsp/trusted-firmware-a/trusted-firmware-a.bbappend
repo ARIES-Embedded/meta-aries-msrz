@@ -1,7 +1,7 @@
-COMPATIBLE_MACHINE_msrzg2ls = "(msrzg2ls)"
+COMPATIBLE_MACHINE_mrzg2ls = "(mrzg2ls)"
 
-PLATFORM_msrzg2ls = "g2l"
-EXTRA_FLAGS_msrzg2ls = "BOARD=smarc_pmic_2 SOC_TYPE=1 SPI_FLASH=AT25QL128A"
-PMIC_EXTRA_FLAGS_msrzg2ls = "BOARD=smarc_pmic_2"
-FLASH_ADDRESS_BL2_BP_msrzg2ls = "00000"
-FLASH_ADDRESS_FIP_msrzg2ls = "1D200"
+PLATFORM_mrzg2ls = "g2l"
+EXTRA_FLAGS_mrzg2ls = "BOARD=smarc_pmic_2 SOC_TYPE=1 SPI_FLASH=AT25QL128A"
+PMIC_EXTRA_FLAGS_mrzg2ls = "BOARD=smarc_pmic_2"
+FLASH_ADDRESS_BL2_BP_mrzg2ls = "00000"
+FLASH_ADDRESS_FIP_mrzg2ls = "1D200"
