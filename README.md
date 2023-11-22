@@ -208,10 +208,26 @@ Follow the below steps for setting up a TFTP server and load kernel, DTB and ini
    # cp bl2_bp-<machine_name>.bin /var/lib/tftpboot/boot/
    # cp fip-<machine_name>.bin /var/lib/tftpboot/boot/
    ```
-1. Open serial connection to the target, and run the following command in the U-Boot prompt:
-```
-=> run spi_update_all
-```
+1. Open serial connection to the target, and configure IP addresses of the board and tftp server in the U-Boot prompt:
+   ```
+   => setenv ipaddr 192.168.22.201
+   => setenv serverip 192.168.22.11
+   ```
+1. Optionally, adjust the MAC address of the target, if there are more than one boards present in the network:
+   ```
+   => setenv ethaddr d6:8f:16:4f:c3:c7
+   ```
+1. Save adjusted U-Boot environment parameters:
+   ```
+   => saveenv
+   Saving Environment to SPIFlash... Erasing SPI flash...Writing to SPI flash...done
+   Valid environment: 2
+   OK
+   ```
+1. Run the following command in the U-Boot prompt for writing Linux kernel Image and rootfs image to SPI flash:
+   ```
+   => run spi_update_all
+   ```
 
 ### Programming Kernel and rootfs images to SD card/USB Flash
 
