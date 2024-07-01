@@ -1,0 +1,7 @@
+COMPATIBLE_MACHINE_mrzv2ls = "(mrzv2ls)"
+
+PLATFORM_mrzv2ls = "v2l"
+EXTRA_FLAGS_mrzv2ls = "BOARD=smarc_pmic_2 SOC_TYPE=1 SPI_FLASH=AT25QL128A"
+PMIC_EXTRA_FLAGS_mrzv2ls = "BOARD=smarc_pmic_2"
+FLASH_ADDRESS_BL2_BP_mrzv2ls = "00000"
+FLASH_ADDRESS_FIP_mrzv2ls = "1D200"

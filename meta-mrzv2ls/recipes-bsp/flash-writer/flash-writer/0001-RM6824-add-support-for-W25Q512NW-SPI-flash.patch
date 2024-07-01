@@ -1,0 +1,38 @@
+From d4cab2ea7f364e745c3d02e658994c777741e578 Mon Sep 17 00:00:00 2001
+From: Alexander Yurtsev <ay@aries-embedded.de>
+Date: Fri, 29 Sep 2023 23:26:23 +0000
+Subject: [PATCH] RM6824: add support for W25Q512NW SPI flash
+
+---
+ dgmodul4.c         | 5 +++++
+ include/dgmodul4.h | 1 +
+ 2 files changed, 6 insertions(+)
+
+diff --git a/dgmodul4.c b/dgmodul4.c
+index ab37074..d95ce23 100644
+--- a/dgmodul4.c
++++ b/dgmodul4.c
+@@ -123,6 +123,11 @@ static uint32_t CheckQspiFlashId(void)
+ 						gQspi_sa_size    = SA_64KB;
+ 						gQspi_end_addess = TOTAL_SIZE_64MB - 0x8000 - 1;
+ 				break;
++				case DEVICE_ID_W25Q512NW_IQ:
++						PutStr("W25Q512NW-IQ", 1);
++						gQspi_sa_size    = SA_64KB;
++						gQspi_end_addess = TOTAL_SIZE_64MB - 0x8000 - 1;
++				break;
+ 				default:
+ 					ret = -1;
+ 				break;
+diff --git a/include/dgmodul4.h b/include/dgmodul4.h
+index 2e20529..f1186e4 100644
+--- a/include/dgmodul4.h
++++ b/include/dgmodul4.h
+@@ -52,6 +52,7 @@
+ #define	DEVICE_ID_W25M512JW		0x6119
+ #define	DEVICE_ID_W25Q512JV		0x4020
+ #define	DEVICE_ID_W25Q512JV_DTR		0x7020
++#define	DEVICE_ID_W25Q512NW_IQ		0x6020
+ 
+ #define	DEVICE_ID_MX25L12805		0x2018
+ #define	DEVICE_ID_MX25L25645G		0x2019
