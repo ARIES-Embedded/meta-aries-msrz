@@ -18,12 +18,12 @@ This layer depends on:
     URI: git://git.yoctoproject.org/poky
     layers: meta, meta-poky, meta-yocto-bsp
     branch: dunfell
-    tag: dunfell-23.0.21
+    tag: dunfell-23.0.31
 
     URI: https://git.openembedded.org/meta-openembedded
     layers: meta-oe, meta-python, meta-multimedia
     branch: dunfell
-    revision: 7952135f650b4a754e2255f5aa03973a32344123
+    revision: daa4619fe3fbf8c28f342c4a7163a84a330f7653
 
     URI: https://git.yoctoproject.org/meta-gplv2
     layers: meta-gplv2
@@ -32,7 +32,7 @@ This layer depends on:
 
     URI: https://github.com/renesas-rz/meta-renesas
     layers: meta-rz-common, meta-rzg2l, meta-rzfive
-    tag: refs/tags/BSP-3.0.3
+    tag: refs/tags/BSP-3.0.6-update2
 
 ## Supported Linux distributions
 
@@ -79,12 +79,13 @@ You can download all Yocto related public source to prepare the build environmen
     $ mkdir sources && cd sources
     $ git clone https://git.yoctoproject.org/git/poky
     $ cd poky
-    $ git checkout dunfell-23.0.21
+    $ git checkout dunfell-23.0.31
+    $ git cherry-pick eb0915c699fbe86488de172d529f073a30d05b6a
     $ cd ..
 
     $ git clone https://github.com/openembedded/meta-openembedded
     $ cd meta-openembedded
-    $ git checkout 7952135f650b4a754e2255f5aa03973a32344123
+    $ git checkout daa4619fe3fbf8c28f342c4a7163a84a330f7653
     $ cd ..
 
     $ git clone https://git.yoctoproject.org/git/meta-gplv2
@@ -94,10 +95,10 @@ You can download all Yocto related public source to prepare the build environmen
     $
     $ git clone https://github.com/renesas-rz/meta-renesas
     $ cd meta-renesas
-    $ git checkout BSP-3.0.3
+    $ git checkout BSP-3.0.6-update2
     $ cd ..
     $
-    $ git clone git@github.com:ARIES-Embedded/meta-aries-msrz # TODO: replace with HTTPS when the repo has gone public
+    $ git clone https://github.com/ARIES-Embedded/meta-aries-msrz.git
     $ cd ..
 
     $ ln -s sources/meta-aries-msrz/scripts/setup-environment
