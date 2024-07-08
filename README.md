@@ -6,6 +6,8 @@ Currently the following boards and MPUs are supported:
 - Board: FIVEBerry/MSRZG2UL / MPU: R9A07G043U (RZ/G2UL)
 - Board: FIVEBerry/MSRZFIVE / MPU: R9A07G043U (RZ/Five)
 - Board: RZ SMARC Carrier Board/MRZG2LS / MPU: R9A07G044L (RZ/G2L)
+- Board: RZ SMARC Carrier Board/MRZV2LS / MPU: R9A07G054L (RZ/V2L)
+- Board: RZ OSM Carrier Board/MSRZG2UL / MPU: R9A07G043U (RZ/G2UL)
 
 ## Patches
 
@@ -105,41 +107,76 @@ You can download all Yocto related public source to prepare the build environmen
     $ ln -s sources/meta-aries-msrz/scripts/docker-build
 ```
 
+In case you want to have Qt5 support, please install the following
+layer as well:
+
+```bash
+    $ $ git clone  https://github.com/meta-qt5/meta-qt5.git
+    $ cd meta-qt5
+    $ git checkout -b tmp c1b0c9f546289b1592d7a895640de103723a0305
+    $ cd ..
+```
+If you want to use OpenSource graphics support for the GPU, please download
+the `meta-rz-panfrost` layer from Renesas:
+
+```bash
+    $ git clone https://github.com/renesas-rz/meta-rz-panfrost.git
+```
+
+For proprietary graphics and multimedia drivers from Renesas please follow
+the instructions at:
+
+         https://github.com/renesas-rz/meta-renesas?tab=readme-ov-file#build-instructions
+
 **Build procedure (Recommended):**
 - Initialize a build using the 'setup-environment' script in the $WORK directory and specify MACHINE and DISTRO variants  e.g.:
    ```bash
    $ mkdir -p build
    $ MACHINE=msrzg2ul DISTRO=poky . setup-environment build
    ```
+  \<MACHINE\> can be selected in below table:
+
+  | Renesas MPU |  Platform |  MACHINE |
+  |:-----------:|:---------:|:--------:|
+  |   RZ/G2UL   | fiveberry | msrzg2ul |
+  |   RZ/Five   | fiveberry | msrzfive |
+  |   RZ/G2UL   |    OSM    | msrzg2ul |
+  |    RZ/G2L   |  RZ SMARC | mrzg2ls  |
+  |    RZ/V2L   |  RZ SMARC | mrzv2ls  |
+
+  \<DISTRO\> is fixed as poky
+
 
 - Build the target file system image using bitbake:
-   ```bash
-   $ bitbake fiveberry-image-minimal fiveberry-image-minimal-initramfs
-   ```
-\<MACHINE\> can be selected in below table:
+  ```bash
+  $ bitbake fiveberry-image-minimal fiveberry-image-minimal-initramfs
+  ```
+  The following images and files will be generated as a result of the build:
+  * spl-msrzfive.bin - U-Boot secondary program loader (MSRZFive only)
+  * spl-msrzfive.srec - U-Boot secondary program loader, Motorola S-record format (MSRZFive only)
+  * fit-msrzfive.bin - combined U-Boot image (MSRZFive only)
+  * fit-msrzfive.srec - combined U-Boot image, Motorola S-record format (MSRZFive only)
+  * bl2_bp-\<machine name\>.bin - ARM Boot Loader stage 2 (MSRZG2UL and MRZG2LS only)
+  * bl2_bp-\<machine name\>.srec - ARM Boot Loader stage 2, Motorola S-record format (MSRZG2UL and MRZG2LS only)
+  * fip-\<machine name\>.bin - combined U-Boot image (MSRZG2UL and MRZG2LS only)
+  * fip-\<machine name\>.srec - combined U-Boot image, Motorola S-record format (MSRZG2UL and MRZG2LS only)
+  * Flash_Writer_SCIF_\<machine name\>.mot - Serial Flash Programmer image
+  * Image.gz-\<machine name\>.bin - compressed Linux Kernel binary
+  * \<machine name\>.dtb - DTB for target machine
+  * fiveberry-image-minimal-\<machine name\>.ext4 - rootfs image in ext4 format
+  * fiveberry-image-minimal-initramfs-\<machine name\>.cpio.gz - initramfs image
+  * fiveberry-image-minimal-\<machine name\>.wic.gz - image for the micro SD card
 
-| Renesas MPU |  Platform |  MACHINE |
-|:-----------:|:---------:|:--------:|
-|   RZ/G2UL   | fiveberry | msrzg2ul |
-|   RZ/Five   | fiveberry | msrzfive |
-|    RZ/G2L   |  RZ SMARC | mrzg2ls |
+  The uncompressed `wic.gz` image can be written directly to the micro SD card with `dd`.
 
-\<DISTRO\> is fixed as poky
+- For graphics, you can build a "Weston" or a "Weston+Qt5" image
+  ```bash
+  $ bitbake core-image-weston
+  ```
 
-The following images and files will be generated as a result of the build:
-* spl-msrzfive.bin - U-Boot secondary program loader (MSRZFive only)
-* spl-msrzfive.srec - U-Boot secondary program loader, Motorola S-record format (MSRZFive only)
-* fit-msrzfive.bin - combined U-Boot image (MSRZFive only)
-* fit-msrzfive.srec - combined U-Boot image, Motorola S-record format (MSRZFive only)
-* bl2_bp-\<machine name\>.bin - ARM Boot Loader stage 2 (MSRZG2UL and MRZG2LS only)
-* bl2_bp-\<machine name\>.srec - ARM Boot Loader stage 2, Motorola S-record format (MSRZG2UL and MRZG2LS only)
-* fip-\<machine name\>.bin - combined U-Boot image (MSRZG2UL and MRZG2LS only)
-* fip-\<machine name\>.srec - combined U-Boot image, Motorola S-record format (MSRZG2UL and MRZG2LS only)
-* Flash_Writer_SCIF_\<machine name\>.mot - Serial Flash Programmer image
-* Image.gz-\<machine name\>.bin - compressed Linux Kernel binary
-* \<machine name\>.dtb - DTB for target machine
-* fiveberry-image-minimal-\<machine name\>.ext4 - rootfs image in ext4 format
-* fiveberry-image-minimal-initramfs-\<machine name\>.cpio.gz - initramfs image
+  ```bash
+  $ bitbake core-image-qt5
+  ```
 
 ## Automatic selection of boot source
 
