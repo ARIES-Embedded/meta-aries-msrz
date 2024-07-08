@@ -5,6 +5,12 @@ POKY_BBLAYERS_CONF_VERSION = "2"
 BBPATH = "${TOPDIR}"
 BBFILES ?= ""
 
+QT_LAYER = "${@os.path.isdir("##OEROOT##/../meta-qt5")}"
+PANFROST_LAYER = "${@os.path.isdir("##OEROOT##/../meta-rz-panfrost")}"
+RZ_FEATURE_CODEC = "${@os.path.isdir("##OEROOT##/../meta-rz-features/meta-rz-codecs")}"
+RZ_FEATURE_GRAPHICS = "${@os.path.isdir("##OEROOT##/../meta-rz-features/meta-rz-graphics")}"
+VIRTUALIZATION_LAYER = "${@os.path.isdir("##OEROOT##/../meta-virtualization")}"
+
 BBLAYERS ?= " \
   ##OEROOT##/../meta-gplv2 \
   ##OEROOT##/../poky/meta \
@@ -17,4 +23,11 @@ BBLAYERS ?= " \
   ##OEROOT##/../meta-openembedded/meta-multimedia \
   ##OEROOT##/../meta-aries-msrz/meta-msrz-common \
   ##OEROOT##/../meta-aries-msrz/meta-mrzg2ls \
+  ${@'##OEROOT##/../meta-qt5' if '${QT_LAYER}' == 'True' else ''} \
+  ${@'##OEROOT##/../meta-rz-panfrost' if '${PANFROST_LAYER}' == 'True' else ''} \
+  ${@'##OEROOT##/../meta-rz-features/meta-rz-codecs' if '${RZ_FEATURE_CODEC}' == 'True' else ''} \
+  ${@'##OEROOT##/../meta-rz-features/meta-rz-graphics' if '${RZ_FEATURE_GRAPHICS}' == 'True' else ''} \
+  ${@'##OEROOT##/../meta-openembedded/meta-filesystems' if '${VIRTUALIZATION_LAYER}' == 'True' else ''} \
+  ${@'##OEROOT##/../meta-openembedded/meta-networking' if '${VIRTUALIZATION_LAYER}' == 'True' else ''} \
+  ${@'##OEROOT##/../meta-virtualization' if '${VIRTUALIZATION_LAYER}' == 'True' else ''} \
   "
