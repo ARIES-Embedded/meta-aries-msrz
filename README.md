@@ -146,7 +146,6 @@ the instructions at:
 
   \<DISTRO\> is fixed as poky
 
-
 - Build the target file system image using bitbake:
   ```bash
   $ bitbake fiveberry-image-minimal fiveberry-image-minimal-initramfs
@@ -169,7 +168,23 @@ the instructions at:
 
   The uncompressed `wic.gz` image can be written directly to the micro SD card with `dd`.
 
-- For graphics, you can build a "Weston" or a "Weston+Qt5" image
+- For graphics, you can build a "Weston" or a "Weston+Qt5" image.
+  You need the following settings in your `local.conf`:
+
+  ```bash
+  $ vi conf/local.conf
+  ...
+  IMAGE_INSTALL_remove += "\
+      lttng-modules \
+      lttng-tools \
+      lttng-ust \
+      kernel-module-uvcvideo \
+  "
+
+  PACKAGECONFIG_append_pn-mesa = " egl kmsro panfrost"
+  IMAGE_INSTALL_append += " mesa weston kmscube"
+  ```
+
   ```bash
   $ bitbake core-image-weston
   ```
