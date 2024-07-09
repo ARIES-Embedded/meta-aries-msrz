@@ -11,6 +11,7 @@ RZ_FEATURE_CODEC = "${@os.path.isdir("##OEROOT##/../meta-rz-features/meta-rz-cod
 RZ_FEATURE_GRAPHICS = "${@os.path.isdir("##OEROOT##/../meta-rz-features/meta-rz-graphics")}"
 VIRTUALIZATION_LAYER = "${@os.path.isdir("##OEROOT##/../meta-virtualization")}"
 
+BBLAYERS ?= " \
   ##OEROOT##/../meta-gplv2 \
   ##OEROOT##/../poky/meta \
   ##OEROOT##/../poky/meta-poky \
