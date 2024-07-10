@@ -23,7 +23,7 @@ BBLAYERS ?= " \
   ##OEROOT##/../meta-openembedded/meta-python \
   ##OEROOT##/../meta-openembedded/meta-multimedia \
   ##OEROOT##/../meta-aries-msrz/meta-msrz-common \
-  ##OEROOT##/../meta-aries-msrz/meta-mrvg2ls \
+  ##OEROOT##/../meta-aries-msrz/meta-mrzv2ls \
   ${@'##OEROOT##/../meta-qt5' if '${QT_LAYER}' == 'True' else ''} \
   ${@'##OEROOT##/../meta-rz-panfrost' if '${PANFROST_LAYER}' == 'True' else ''} \
   ${@'##OEROOT##/../meta-rz-features/meta-rz-codecs' if '${RZ_FEATURE_CODEC}' == 'True' else ''} \
