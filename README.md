@@ -146,7 +146,7 @@ the instructions at:
 
   \<DISTRO\> is fixed as poky
 
-- Build the target file system image using bitbake:
+- Build the target images using bitbake:
   ```bash
   $ bitbake fiveberry-image-minimal fiveberry-image-minimal-initramfs
   ```
@@ -172,25 +172,27 @@ the instructions at:
   You need the following settings in your `local.conf`:
 
   ```bash
-  $ vi conf/local.conf
-  ...
-  IMAGE_INSTALL_remove += "\
-      lttng-modules \
-      lttng-tools \
-      lttng-ust \
-      kernel-module-uvcvideo \
-  "
+      $ vi conf/local.conf
+      ...
+      IMAGE_INSTALL_remove += "\
+          lttng-modules \
+          lttng-tools \
+          lttng-ust \
+          kernel-module-uvcvideo \
+      "
 
-  PACKAGECONFIG_append_pn-mesa = " egl kmsro panfrost"
-  IMAGE_INSTALL_append += " mesa weston kmscube"
+      PACKAGECONFIG_append_pn-mesa = " egl kmsro panfrost"
+      IMAGE_INSTALL_append += " mesa weston kmscube"
   ```
 
+Then you can build the the image with:
   ```bash
-  $ bitbake core-image-weston
+      $ bitbake core-image-weston
   ```
 
+or
   ```bash
-  $ bitbake core-image-qt5
+      $ bitbake core-image-qt
   ```
 
 ## Automatic selection of boot source
