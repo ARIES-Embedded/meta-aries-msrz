@@ -1,0 +1,4 @@
+# Short-description: Create image for SD-Card or eMMC
+# Long-description: Creates a image that can be used to write to SD-Card or eMMC for RZ boards
+#                   The partition contains rootfs, as well as Linux image and devicetree
+part --source rootfs            --fstype=ext4 --label root            --align 4
