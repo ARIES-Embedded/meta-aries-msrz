@@ -1,4 +1,4 @@
-COMPATIBLE_MACHINE_msrzg2ul = "(msrzg2ul)"
+COMPATIBLE_MACHINE_msrzg2ul = "(msrzg2ul-baa|msrzg2ul-a0a)"
 
 PLATFORM_msrzg2ul = "g2ul"
 EXTRA_FLAGS_msrzg2ul = "BOARD=msrzg2ul SOC_TYPE=1 SPI_FLASH=AT25QL128A"
