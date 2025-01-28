@@ -8,6 +8,7 @@ Currently the following boards and MPUs are supported:
 - Board: RZ SMARC Carrier Board/MRZG2LS / MPU: R9A07G044L (RZ/G2L)
 - Board: RZ SMARC Carrier Board/MRZV2LS / MPU: R9A07G054L (RZ/V2L)
 - Board: RZ OSM Carrier Board/MSRZG2UL / MPU: R9A07G043U (RZ/G2UL)
+- Board: RZ OSM Carrier Board/MSRZG3S / MPU: R9A08G045S33 (RZ/G3S)
 
 ## Patches
 
@@ -97,7 +98,7 @@ You can download all Yocto related public source to prepare the build environmen
     $
     $ git clone https://github.com/renesas-rz/meta-renesas
     $ cd meta-renesas
-    $ git checkout BSP-3.0.6-update2
+    $ git checkout BSP-3.0.6-update4
     $ cd ..
     $
     $ git clone https://github.com/ARIES-Embedded/meta-aries-msrz.git
@@ -141,6 +142,7 @@ the instructions at:
   |   RZ/G2UL   | fiveberry | msrzg2ul |
   |   RZ/Five   | fiveberry | msrzfive |
   |   RZ/G2UL   |    OSM    | msrzg2ul |
+  |   RZ/G3S    |    OSM    | msrzg3s-a0a or msrzg3s-baa|
   |    RZ/G2L   |  RZ SMARC | mrzg2ls  |
   |    RZ/V2L   |  RZ SMARC | mrzv2ls  |
 
