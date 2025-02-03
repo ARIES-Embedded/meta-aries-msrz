@@ -8,7 +8,7 @@ Currently the following boards and MPUs are supported:
 - Board: RZ SMARC Carrier Board/MRZG2LS / MPU: R9A07G044L (RZ/G2L)
 - Board: RZ SMARC Carrier Board/MRZV2LS / MPU: R9A07G054L (RZ/V2L)
 - Board: RZ OSM Carrier Board/MSRZG2UL / MPU: R9A07G043U (RZ/G2UL)
-- Board: RZ OSM Carrier Board/MSRZG3S / MPU: R9A08G045S33 (RZ/G3S)
+- Board: RZ OSM Carrier Board/MSRZG3S / MPU: R9A08G045 (RZ/G3S)
 
 ## Patches
 
@@ -34,8 +34,8 @@ This layer depends on:
     revision: 60b251c25ba87e946a0ca4cdc8d17b1cb09292ac
 
     URI: https://github.com/renesas-rz/meta-renesas
-    layers: meta-rz-common, meta-rzg2l, meta-rzfive
-    tag: refs/tags/BSP-3.0.6-update2
+    layers: meta-rz-common, meta-rzg2l, meta-rzv2l, meta-rzg3s, meta-rzfive
+    tag: refs/tags/BSP-3.0.6-update4
 
 ## Supported Linux distributions
 
@@ -142,7 +142,7 @@ the instructions at:
   |   RZ/G2UL   | fiveberry | msrzg2ul |
   |   RZ/Five   | fiveberry | msrzfive |
   |   RZ/G2UL   |    OSM    | msrzg2ul |
-  |   RZ/G3S    |    OSM    | msrzg3s-a0a or msrzg3s-baa|
+  |   RZ/G3S    |    OSM    | msrzg3s-a0a, msrzg3s-baa|
   |    RZ/G2L   |  RZ SMARC | mrzg2ls  |
   |    RZ/V2L   |  RZ SMARC | mrzv2ls  |
 
