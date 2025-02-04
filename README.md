@@ -133,7 +133,7 @@ the instructions at:
 - Initialize a build using the 'setup-environment' script in the $WORK directory and specify MACHINE and DISTRO variants  e.g.:
    ```bash
    $ mkdir -p build
-   $ MACHINE=msrzg2ul DISTRO=poky . setup-environment build
+   $ MACHINE=msrzg2ul-baa DISTRO=poky . setup-environment build
    ```
   \<MACHINE\> can be selected in below table:
 
@@ -141,7 +141,7 @@ the instructions at:
   |:-----------:|:---------:|:--------:|
   |   RZ/G2UL   | fiveberry | msrzg2ul |
   |   RZ/Five   | fiveberry | msrzfive |
-  |   RZ/G2UL   |    OSM    | msrzg2ul |
+  |   RZ/G2UL   |    OSM    | msrzg2ul-a0a, msrzg2ul-baa |
   |   RZ/G3S    |    OSM    | msrzg3s-a0a, msrzg3s-baa|
   |    RZ/G2L   |  RZ SMARC | mrzg2ls  |
   |    RZ/V2L   |  RZ SMARC | mrzv2ls  |
@@ -157,10 +157,10 @@ the instructions at:
   * spl-msrzfive.srec - U-Boot secondary program loader, Motorola S-record format (MSRZFive only)
   * fit-msrzfive.bin - combined U-Boot image (MSRZFive only)
   * fit-msrzfive.srec - combined U-Boot image, Motorola S-record format (MSRZFive only)
-  * bl2_bp-\<machine name\>.bin - ARM Boot Loader stage 2 (MSRZG2UL and MRZG2LS only)
-  * bl2_bp-\<machine name\>.srec - ARM Boot Loader stage 2, Motorola S-record format (MSRZG2UL and MRZG2LS only)
-  * fip-\<machine name\>.bin - combined U-Boot image (MSRZG2UL and MRZG2LS only)
-  * fip-\<machine name\>.srec - combined U-Boot image, Motorola S-record format (MSRZG2UL and MRZG2LS only)
+  * bl2_bp-\<machine name\>.bin - ARM Boot Loader stage 2 (not for MSRZFive)
+  * bl2_bp-\<machine name\>.srec - ARM Boot Loader stage 2, Motorola S-record format (not for MSRZFive)
+  * fip-\<machine name\>.bin - combined U-Boot image (not for MSRZFive)
+  * fip-\<machine name\>.srec - combined U-Boot image, Motorola S-record format (not for MSRZFive)
   * Flash_Writer_SCIF_\<machine name\>.mot - Serial Flash Programmer image
   * Image.gz-\<machine name\>.bin - compressed Linux Kernel binary
   * \<machine name\>.dtb - DTB for target machine
@@ -230,11 +230,12 @@ From Linux the `boot_mode` variable can be changed with help of the `fw_setenv` 
 
 ### Programming U-Boot and Secondary Program Loader via Serial Interface
 
-Serial Interface (SCIF) can be used for initial programming of all supported targets (MSRZG2UL, MRZG2LS and MSRZFive). SCIF supports maximum transmission rate of 115200 baud, so this method is only suitable for progreamming U-Boot and subsidiary loaders. Programming othre images such as Kernel image or rootfs image via SCIF will take too much time. Follow the below steps for initial programming of U-Boot and SPL/BL2 loaders into the SPI flash of the target:
+Serial Interface (SCIF) can be used for initial programming of all supported targets. SCIF supports maximum transmission rate of 115200 baud, so this method is only suitable for progreamming U-Boot and subsidiary loaders. Programming othre images such as Kernel image or rootfs image via SCIF will take too much time. Follow the below steps for initial programming of U-Boot and SPL/BL2 loaders into the SPI flash of the target:
 
 1. Set boot switches on the Fiveberry carrier board into the SCIF boot position: SW1.1 - open, SW1.2 - closed. Then reset the board.
 1. Follow instruction from the following document to porgram U-Boot and SPL/BL2 loader into the SPI Flash: https://www.renesas.com/eu/en/document/gde/smarc-evk-rzg2l-rzg2lc-rzg2ul-rzv2l-and-rzfive-start-guide-rev103?r=1569466
 1. The below images should be used along with the Serial Downloader instructions:
+   - MSRZFive: `spl-msrzfive.srec`, `fit-msrzfive.srec`
    - MSRZFive: `spl-msrzfive.srec`, `fit-msrzfive.srec`
    - MSRZG2UL: `bl2_bp-msrzg2ul.srec`, `fip-msrzg2ul.srec`
    - MRZG2LS: `bl2_bp-mrzg2ls.srec`, `fip-mrzg2ls.srec`
@@ -243,7 +244,7 @@ Serial Interface (SCIF) can be used for initial programming of all supported tar
 
 ### Programming Kernel and Initramfs images into the SPI Flash
 
-U-Boot for MSRZG2UL/MRZG2LS/MSRZFive includes builin support for network interfaces. Thus when initial programming of U-Boot is done, additional images such as Linux Kernel and rootfs can be loaded via network. MSRZG2UL/MSRZFive targets has 16 Mb of QSPI Flash (64 Mb on MRZG2LS). This is enough for storing a Linux Kernel and initramfs images. While a full fledged root filesystem can be created on a SD card, or USB flash drive.
+U-Boot for MSRZG2UL/MRZG2LS/MSRZFive includes builtin support for network interfaces. Thus when initial programming of U-Boot is done, additional images such as Linux Kernel and rootfs can be loaded via network. MSRZG2UL/MSRZFive targets has 16 Mb of QSPI Flash (64 Mb on MRZG2LS). This is enough for storing a Linux Kernel and initramfs images. While a full fledged root filesystem can be created on a SD card, or USB flash drive.
 
 Follow the below steps for setting up a TFTP server and load kernel, DTB and initramfs images into the SPI Flash.
 
