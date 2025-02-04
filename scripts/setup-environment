@@ -188,8 +188,8 @@ You can now run 'bitbake <target>'
 Common targets are:
     core-image-minimal
     core-image-minimal-initramfs
-    fiveberry-image-minimal
-    fiveberry-image-minimal-initramfs
+    msrz-image-minimal
+    msrz-image-minimal-initramfs
 
 EOF
 

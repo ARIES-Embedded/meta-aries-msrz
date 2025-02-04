@@ -4,8 +4,8 @@ LICENSE = "MIT"
 IMAGE_LINGUAS = ""
 IMAGE_INSTALL = " \
     packagegroup-core-boot \
-    packagegroup-fiveberry-base \
-    packagegroup-fiveberry-bringup \
+    packagegroup-msrz-base \
+    packagegroup-msrz-bringup \
     "
 IMAGE_FSTYPES = "${INITRAMFS_FSTYPES}"
 

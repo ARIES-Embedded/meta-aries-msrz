@@ -1,2 +1,2 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
-SRC_URI += "file://fiveberry.cfg"
+SRC_URI += "file://msrz.cfg"

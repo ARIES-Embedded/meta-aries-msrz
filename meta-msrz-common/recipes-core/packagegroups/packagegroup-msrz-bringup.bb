@@ -2,7 +2,7 @@
 # Copyright (C) 2023 ARIES Embedded
 #
 
-SUMMARY = "Fiveberry packages groups needed for bringup"
+SUMMARY = "MSRZ packages groups needed for bringup"
 PR = "r0"
 
 inherit packagegroup

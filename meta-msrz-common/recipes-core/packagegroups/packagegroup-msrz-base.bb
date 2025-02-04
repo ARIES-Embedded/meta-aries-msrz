@@ -2,7 +2,7 @@
 # Copyright (C) 2023 ARIES Embedded
 #
 
-SUMMARY = "Fiveberry debug package groups"
+SUMMARY = "MSRZ debug package groups"
 PR = "r0"
 
 inherit packagegroup

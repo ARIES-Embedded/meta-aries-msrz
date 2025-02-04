@@ -7,6 +7,6 @@ LICENSE = "MIT"
 inherit core-image
 
 IMAGE_INSTALL += " \
-    packagegroup-fiveberry-base \
-    packagegroup-fiveberry-bringup \
+    packagegroup-msrz-base \
+    packagegroup-msrz-bringup \
     "
