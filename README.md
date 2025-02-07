@@ -7,9 +7,9 @@ Currently the following modules, boards and MPUs are supported:
 
   | Module        | Board/EVK              | Renesas MPU          |
   | ------------- | ---------------------- | -------------------- |
-  | SMARC MRZG2LS | MRZG2LSEVK             | R9A07G044L (RZ|G2L)  |
-  | SMARC MRZV2LS | MRZV2LSEVK             | R9A07G054L (RZ|V2L)  |
-  | MSRZG2UL      | MSRZG2ULEVK, G2ULberry | R9A07G043U (RZ|G2UL) |
+  | SMARC MRZG2LS | MRZG2LSEVK             | R9A07G044L (RZ/G2L)  |
+  | SMARC MRZV2LS | MRZV2LSEVK             | R9A07G054L (RZ/V2L)  |
+  | MSRZG2UL      | MSRZG2ULEVK, G2ULberry | R9A07G043U (RZ/G2UL) |
   | MSRZG3S       | MSRZG3SEVK, G3Sberry   | R9A08G045 (RZ/G3S)   |
 
 ## Patches
@@ -219,9 +219,9 @@ The following boot modes are supported for the MSRZ boards:
 
   | Boot from |     Switch settings     |
   | --------- | ----------------------- |
-  | SCIF      | 1=open, 2=closed 3=open |
-  | SPI-NOR   | 1=open, 2=open 3=open   |
-  | eMMC      | 1=closed, 2=open 3=open |
+  | SCIF      | 1=OPEN, 2=closed 3=OPEN |
+  | SPI-NOR   | 1=OPEN, 2=OPEN 3=OPEN   |
+  | eMMC      | 1=closed, 2=OPEN 3=OPEN |
 
 - MSRZG2ULEVK (Swtch S1/BOOT), G2ULberry (Switch S3/BOOT)
 
