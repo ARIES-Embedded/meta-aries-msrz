@@ -229,7 +229,7 @@ The following boot modes are supported for the MSRZ boards:
   | --------- | ----------------------- |
   | SCIF      | 1=ON, 2=OFF             |
   | SPI-NOR   | 1=OFF, 2=ON             |
-  | eMMC      | 1=OFF, 2=ON             |
+  | eMMC      | 1=OFF, 2=OFF            |
 
 - G3Sberry (Switch S2/CFG1)
 
