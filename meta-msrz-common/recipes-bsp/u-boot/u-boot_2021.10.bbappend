@@ -1,4 +1,4 @@
 require u-boot-initial-env.inc
 UBOOT_URL = "git://github.com/ARIES-Embedded/renesas-u-boot-cip.git;protocol=https"
 BRANCH = "dev/v2021.10/msrz"
-SRCREV = "ca3915eb0068736262b93abd001682bbd768147c"
+SRCREV = "075575540a2347c1d6976b5c11e5e1e74de2801b"
