@@ -319,8 +319,8 @@ initramfs images into the SPI Flash:
    ```
 3. Copy U-Boot and secondary loader images:
    ```
-   # cp bl2_bp-<machine_name>.bin /var/lib/tftpboot/boot/
-   # cp fip-<machine_name>.bin /var/lib/tftpboot/boot/
+   # cp bl2_bp-<MACHINE>.bin /var/lib/tftpboot/boot/
+   # cp fip-<MACHINE>.bin /var/lib/tftpboot/boot/
    ```
 4. Open serial connection to the target, and configure IP addresses of the board
    and tftp server in the U-Boot prompt:
