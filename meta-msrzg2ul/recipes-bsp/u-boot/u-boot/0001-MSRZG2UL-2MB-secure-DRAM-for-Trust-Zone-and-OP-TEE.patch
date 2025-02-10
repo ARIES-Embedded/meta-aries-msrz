@@ -1,4 +1,4 @@
-From 4494cf72246351f1953e64518f9f5377d09713cc Mon Sep 17 00:00:00 2001
+From 0f0d42abf7c20a6d6b2e179c95284b83fd951f71 Mon Sep 17 00:00:00 2001
 From: Wolfgang Grandegger <wg@aries-embedded.de>
 Date: Mon, 10 Feb 2025 09:58:52 +0100
 Subject: [PATCH] MSRZG2UL: 2MB secure DRAM for Trust Zone and OP-TEE
@@ -13,13 +13,13 @@ to update the memory node in the device-tree of U-Boot and Linux.
 
 Signed-off-by: Wolfgang Grandegger <wg@aries-embedded.de>
 ---
- arch/arm/dts/msrzg2ul-a0a.dts | 4 ++--
- arch/arm/dts/msrzg2ul-baa.dts | 4 ++--
+ arch/arm/dts/msrzg2ul-a0a.dts | 6 +++---
+ arch/arm/dts/msrzg2ul-baa.dts | 6 +++---
  include/configs/msrzg2ul.h    | 2 +-
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
 diff --git a/arch/arm/dts/msrzg2ul-a0a.dts b/arch/arm/dts/msrzg2ul-a0a.dts
-index 86f8b3c6dc..e3dbbf88cd 100644
+index 86f8b3c6dc..b00321cab0 100644
 --- a/arch/arm/dts/msrzg2ul-a0a.dts
 +++ b/arch/arm/dts/msrzg2ul-a0a.dts
 @@ -14,10 +14,10 @@
@@ -29,14 +29,15 @@ index 86f8b3c6dc..e3dbbf88cd 100644
 -	memory@48000000 {
 +	memory@40200000 {
  		device_type = "memory";
- 		/* first 128MB is reserved for secure area. */
+-		/* first 128MB is reserved for secure area. */
 -		reg = <0 0x48000000 0 0x18000000>;
++		/* first 2MB is reserved for secure area. */
 +		reg = <0 0x40200000 0 0x1fe00000>;
  	};
  
  };
 diff --git a/arch/arm/dts/msrzg2ul-baa.dts b/arch/arm/dts/msrzg2ul-baa.dts
-index b2c88f8744..24b83517cc 100644
+index b2c88f8744..f5e3ae39f6 100644
 --- a/arch/arm/dts/msrzg2ul-baa.dts
 +++ b/arch/arm/dts/msrzg2ul-baa.dts
 @@ -14,10 +14,10 @@
@@ -46,8 +47,9 @@ index b2c88f8744..24b83517cc 100644
 -	memory@48000000 {
 +	memory@40200000 {
  		device_type = "memory";
- 		/* first 128MB is reserved for secure area. */
+-		/* first 128MB is reserved for secure area. */
 -		reg = <0 0x48000000 0 0x38000000>;
++		/* first 2MB is reserved for secure area. */
 +		reg = <0 0x40200000 0 0x3fe00000>;
  	};
  

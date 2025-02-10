@@ -1,4 +1,4 @@
-From 36880a7bafd87c0b1db1ec387ec8a677716e25b1 Mon Sep 17 00:00:00 2001
+From 94fd726ffd7781b38a69306cf805a1913c25cb81 Mon Sep 17 00:00:00 2001
 From: Wolfgang Grandegger <wg@aries-embedded.de>
 Date: Mon, 10 Feb 2025 10:20:25 +0100
 Subject: [PATCH] MRZG2LS: 2MB secure DRAM for Trust Zone and OP-TEE
@@ -13,12 +13,12 @@ to update the memory node in the device-tree of U-Boot and Linux.
 
 Signed-off-by: Wolfgang Grandegger <wg@aries-embedded.de>
 ---
- arch/arm/dts/mrzg2ls.dts  | 4 ++--
+ arch/arm/dts/mrzg2ls.dts  | 6 +++---
  include/configs/mrzg2ls.h | 2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/arch/arm/dts/mrzg2ls.dts b/arch/arm/dts/mrzg2ls.dts
-index 06d5e6cc26..3f942e163d 100644
+index 06d5e6cc26..aea0b2e130 100644
 --- a/arch/arm/dts/mrzg2ls.dts
 +++ b/arch/arm/dts/mrzg2ls.dts
 @@ -26,10 +26,10 @@
@@ -28,8 +28,9 @@ index 06d5e6cc26..3f942e163d 100644
 -	memory@48000000 {
 +	memory@40200000 {
  		device_type = "memory";
- 		/* first 128MB is reserved for secure area. */
+-		/* first 128MB is reserved for secure area. */
 -		reg = <0 0x48000000 0 0x38000000>;
++		/* first 2MB is reserved for secure area. */
 +		reg = <0 0x40200000 0 0x3fe00000>;
  	};
  
