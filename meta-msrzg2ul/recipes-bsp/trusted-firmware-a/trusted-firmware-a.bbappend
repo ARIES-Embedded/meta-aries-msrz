@@ -7,5 +7,8 @@ FLASH_ADDRESS_FIP_msrzg2ul = "1D200"
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
-SRC_URI += "file://0001-MSRZG2UL-board-configuration.patch"
+SRC_URI += " \
+	file://0001-MSRZG2UL-board-configuration.patch \
+	${@bb.utils.contains('MSRZ_SECURE_DRAM_2MB', '1', 'file://0001-MSRZ-2MB-secure-DRAM-for-Trust-Zone-and-OP-TEE.patch', '',d)} \
+"
 
