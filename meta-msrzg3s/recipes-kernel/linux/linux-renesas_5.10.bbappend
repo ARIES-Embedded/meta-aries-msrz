@@ -6,6 +6,7 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 IWLWIFI_FIRMWARE = "https://git.kernel.org/pub/scm/linux/kernel/git/iwlwifi/linux-firmware.git/plain/iwlwifi-cc-a0-46.ucode;md5sum=babe453e0bc18ec93768ec6f002d8229;downloadfilename=iwlwifi-cc-a0-46.ucode"
 
 SRC_URI_append = " \
+	${@bb.utils.contains('MSRZ_SECURE_DRAM_2MB', '1', 'file://0001-MSRZG3S-2MB-secure-DRAM-for-Trust-Zone-and-OP-TEE.patch', '',d)} \
 	${@bb.utils.contains('MACHINE_FEATURES', 'ax200-wifi', '${IWLWIFI_FIRMWARE}', '',d)} \
 	${@bb.utils.contains('MACHINE_FEATURES', 'ax200-wifi', 'file://ax200-wifi.cfg', '',d)} \
 	${@bb.utils.contains('MACHINE_FEATURES', 'atheros-ar9287-wifi', 'file://atheros-ar9287-wifi.cfg', '',d)} \

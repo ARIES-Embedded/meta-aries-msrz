@@ -1,7 +1,7 @@
 From 049e6aad038793ed062d882617a99a634b3b1c8e Mon Sep 17 00:00:00 2001
 From: Wolfgang Grandegger <wg@aries-embedded.de>
 Date: Wed, 22 Jan 2025 11:45:15 +0100
-Subject: [PATCH] MSRZG3S board configuration
+Subject: [PATCH 1/2] MSRZG3S board configuration
 
 The configuration is derived from "plat/renesas/rz/board/smarc_g3s",
 which is very similar and uses LPDDR4 as well. We regenerated the

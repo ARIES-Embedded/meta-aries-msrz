@@ -3,6 +3,10 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 BRANCH = "v2021.10/rz-msrzg3s"
 SRCREV = "bb2077fd3847392a6e0fe8fa9e001bd4ed0a36fa"
 
+SRC_URI += " \
+	${@bb.utils.contains('MSRZ_SECURE_DRAM_2MB', '1', 'file://0001-MSRZG3S-2MB-secure-DRAM-for-Trust-Zone-and-OP-TEE.patch', '',d)} \
+"
+
 UBOOT_SREC_SUFFIX = "srec"
 UBOOT_SREC ?= "u-boot-elf.${UBOOT_SREC_SUFFIX}"
 UBOOT_SREC_IMAGE ?= "u-boot-elf-${MACHINE}-${PV}-${PR}.${UBOOT_SREC_SUFFIX}"

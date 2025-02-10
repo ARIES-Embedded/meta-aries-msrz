@@ -1,0 +1,57 @@
+From d47440d0cc290ab82745cc279ba2ef95791c1740 Mon Sep 17 00:00:00 2001
+From: Wolfgang Grandegger <wg@aries-embedded.de>
+Date: Mon, 10 Feb 2025 11:36:32 +0100
+Subject: [PATCH] MSRZG3S: 2MB secure DRAM for Trust Zone and OP-TEE
+
+In order to use Trust Zone and OP-TEE in your system, the secure area
+must be hidden from Linux. By default, the BSP allocates 128MB of
+space at the beginning of DDR Memory. For further information see
+https://confluence.renesas.com/display/REN/RZ+BSP+Porting+-+Memory+Map.
+
+We reduce the space to 2MB, which is the minimum. It's also necessary
+to update the memory node in the device-tree of U-Boot and Linux.
+
+Signed-off-by: Wolfgang Grandegger <wg@aries-embedded.de>
+---
+ arch/arm64/boot/dts/aries/msrzg3s-a0a.dts | 6 +++---
+ arch/arm64/boot/dts/aries/msrzg3s-baa.dts | 6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/aries/msrzg3s-a0a.dts b/arch/arm64/boot/dts/aries/msrzg3s-a0a.dts
+index 47f706e45cdd..2068ebee3f3a 100644
+--- a/arch/arm64/boot/dts/aries/msrzg3s-a0a.dts
++++ b/arch/arm64/boot/dts/aries/msrzg3s-a0a.dts
+@@ -15,9 +15,9 @@ / {
+ 	compatible = "aries,msrzg3-a0a", "aries,msrzg3",
+ 		     "renesas,r9a08g045s33", "renesas,r9a08g045";
+ 
+-	memory@48000000 {
++	memory@40200000 {
+ 		device_type = "memory";
+-		/* First 128MB is reserved for secure area. */
+-		reg = <0x0 0x48000000 0x0 0x18000000>;
++		/* First 2MB is reserved for secure area. */
++		reg = <0x0 0x40200000 0x0 0x1fe00000>;
+ 	};
+ };
+diff --git a/arch/arm64/boot/dts/aries/msrzg3s-baa.dts b/arch/arm64/boot/dts/aries/msrzg3s-baa.dts
+index f629b505987a..8944bb744a32 100644
+--- a/arch/arm64/boot/dts/aries/msrzg3s-baa.dts
++++ b/arch/arm64/boot/dts/aries/msrzg3s-baa.dts
+@@ -15,10 +15,10 @@ / {
+ 	compatible = "aries,msrzg3-baa", "aries,msrzg3",
+ 		     "renesas,r9a08g045s33", "renesas,r9a08g045";
+ 
+-	memory@48000000 {
++	memory@40200000 {
+ 		device_type = "memory";
+-		/* First 128MB is reserved for secure area. */
+-		reg = <0x0 0x48000000 0x0 0x38000000>;
++		/* First 2MB is reserved for secure area. */
++		reg = <0x0 0x40200000 0x0 0x3fe00000>;
+ 	};
+ };
+ 
+-- 
+2.34.1
+

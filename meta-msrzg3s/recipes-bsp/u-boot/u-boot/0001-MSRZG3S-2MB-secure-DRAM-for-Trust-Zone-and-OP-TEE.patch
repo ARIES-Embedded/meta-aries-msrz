@@ -1,0 +1,71 @@
+From 3a0bbb00f333cdade4c9a21540fd6cc3e339da75 Mon Sep 17 00:00:00 2001
+From: Wolfgang Grandegger <wg@aries-embedded.de>
+Date: Mon, 10 Feb 2025 12:39:14 +0100
+Subject: [PATCH] MSRZG3S: 2MB secure DRAM for Trust Zone and OP-TEE
+
+In order to use Trust Zone and OP-TEE in your system, the secure area
+must be hidden from Linux. By default, the BSP allocates 128MB of
+space at the beginning of DDR Memory. For further information see
+https://confluence.renesas.com/display/REN/RZ+BSP+Porting+-+Memory+Map.
+
+We reduce the space to 2MB, which is the minimum. It's also necessary
+to update the memory node in the device-tree of U-Boot and Linux.
+
+Signed-off-by: Wolfgang Grandegger <wg@aries-embedded.de>
+---
+ arch/arm/dts/msrzg3s-a0a.dts | 6 +++---
+ arch/arm/dts/msrzg3s-baa.dts | 6 +++---
+ include/configs/msrzg3s.h    | 2 +-
+ 3 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/arch/arm/dts/msrzg3s-a0a.dts b/arch/arm/dts/msrzg3s-a0a.dts
+index 46003f078a..afcb22efb1 100644
+--- a/arch/arm/dts/msrzg3s-a0a.dts
++++ b/arch/arm/dts/msrzg3s-a0a.dts
+@@ -15,9 +15,9 @@
+ 	model = "msrzg3s-a0a";
+ 	compatible = "renesas,r9a08g045s", "aries,msrzg3s", "aries,msrzg3s-a0a";
+ 
+-	memory@48000000 {
++	memory@40200000 {
+ 		device_type = "memory";
+-		/* first 128MB is reserved for secure area. */
+-		reg = <0 0x48000000 0 0x18000000>;
++		/* first 2MB is reserved for secure area. */
++		reg = <0 0x40200000 0 0x1fe00000>;
+ 	};
+ };
+diff --git a/arch/arm/dts/msrzg3s-baa.dts b/arch/arm/dts/msrzg3s-baa.dts
+index 77348a1d3c..6c00fa425c 100644
+--- a/arch/arm/dts/msrzg3s-baa.dts
++++ b/arch/arm/dts/msrzg3s-baa.dts
+@@ -15,10 +15,10 @@
+ 	model = "msrzg3s-baa";
+ 	compatible = "renesas,r9a08g045s", "aries,msrzg3s", "aries,msrzg3s-baa";
+ 
+-	memory@48000000 {
++	memory@40200000 {
+ 		device_type = "memory";
+-		/* first 128MB is reserved for secure area. */
+-		reg = <0 0x48000000 0 0x38000000>;
++		/* first 2MB is reserved for secure area. */
++		reg = <0 0x40200000 0 0x3fe00000>;
+ 	};
+ };
+ 
+diff --git a/include/configs/msrzg3s.h b/include/configs/msrzg3s.h
+index 65066ef0a8..c6bd85c79d 100644
+--- a/include/configs/msrzg3s.h
++++ b/include/configs/msrzg3s.h
+@@ -46,7 +46,7 @@
+ #else
+ #define DRAM_SIZE			0x20000000u /* 512 MB */
+ #endif
+-#define DRAM_RSV_SIZE			0x08000000
++#define DRAM_RSV_SIZE			0x00200000
+ #define CONFIG_SYS_SDRAM_BASE		(0x40000000 + DRAM_RSV_SIZE)
+ #define CONFIG_SYS_SDRAM_SIZE		(DRAM_SIZE - DRAM_RSV_SIZE)
+ #define CONFIG_SYS_LOAD_ADDR		0x58000000
+-- 
+2.34.1
+

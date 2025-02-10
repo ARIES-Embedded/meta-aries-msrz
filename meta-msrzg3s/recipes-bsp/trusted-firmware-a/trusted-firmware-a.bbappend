@@ -9,7 +9,10 @@ EXTRA_FLAGS_msrzg3s-baa = "BOARD=msrzg3s PLAT_SYSTEM_SUSPEND=awo PLAT_DRAM_SIZE=
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
-SRC_URI += "file://0001-MSRZG3S-board-configuration.patch"
+SRC_URI += " \
+	file://0001-MSRZG3S-board-configuration.patch \
+	file://0002-MSRZ-2MB-secure-DRAM-for-Trust-Zone-and-OP-TEE.patch \
+"
 
 FILES_${PN} = "/boot "
 SYSROOT_DIRS += "/boot"
