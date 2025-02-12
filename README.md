@@ -211,6 +211,20 @@ or
       $ bitbake core-image-qt
   ```
 
+## Build configs:
+
+It is possible to change some build configs as below:
+
+- MSRZ_SECURE_DRAM_2MB: In order to use Trust Zone and OP-TEE in your system,
+  the secure area must be hidden from Linux. By default, the BSP allocates
+  128MB of space at the beginning of DDR Memory. For further information see
+  [3]. You can reduce the secure area to the minimum of 2 MB by setting in
+  your `local.conf`:
+
+  ```bash
+      MSRZ_SECURE_DRAM_2MB = 1
+  ```
+
 ## Boot mode switches:
 
 The following boot modes are supported for the MSRZ boards:
@@ -287,7 +301,7 @@ loaders into the SPI flash of the target:
    Then reset the board.
 2. Follow the instruction about "Write the Bootloader" from [2] to program
    U-Boot and SPL/BL2 loader into the SPI Flash. For the MSRZG3S, please
-   follow [3].
+   follow [4].
 3. The below images should be used along with the Serial Downloader
    instructions:
    - `Flash_Writer_SCIF_<MACHINE>_*.mot`
@@ -384,4 +398,5 @@ Please replace `<mmc-device>` with your SD card device, e.g. `/dev/mmcblk0`.
 
 [1]: https://www.aries-embedded.com
 [2]: https://www.renesas.com/en/document/qsg/rzg2l-evaluation-board-kit-quick-start-guide
-[3]: https://www.renesas.com/en/document/qsg/rzg3s-evaluation-board-kit-quick-start-guide
+[3]: https://confluence.renesas.com/display/REN/RZ+BSP+Porting+-+Memory+Map
+[4]: https://www.renesas.com/en/document/qsg/rzg3s-evaluation-board-kit-quick-start-guide
