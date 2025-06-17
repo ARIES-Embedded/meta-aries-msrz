@@ -24,14 +24,13 @@ This layer depends on:
     URI: git://git.yoctoproject.org/poky
     layers: meta, meta-poky, meta-yocto-bsp
     branch: dunfell
-    revision: a9e3cc3b9eab7a83c715bb8440454e8fea852c2a
-    tag: dunfell-23.0.31
-    cherry-pick commit eb0915c699fbe86488de172d529f073a30d05b6a
+    revision: 63d05fc061006bf1a88630d6d91cdc76ea33fbf2
+    tag: dunfell-23.0.33
 
     URI: https://git.openembedded.org/meta-openembedded
     layers: meta-oe, meta-python, meta-multimedia
     branch: dunfell
-    revision: daa4619fe3fbf8c28f342c4a7163a84a330f7653
+    revision: 01358b6d705071cc0ac5aefa7670ab235709729a
 
     URI: https://git.yoctoproject.org/meta-gplv2
     layers: meta-gplv2
@@ -40,7 +39,7 @@ This layer depends on:
 
     URI: https://github.com/renesas-rz/meta-renesas
     layers: meta-rz-common, meta-rzg2l, meta-rzv2l, meta-rzg3s, meta-rzfive
-    tag: refs/tags/BSP-3.0.6-update4
+    tag: refs/tags/BSP-3.0.7
 
     core-image-qt: Optional (unsupported for RZ/V2M, RZ/V2MA and RZ/G3S)
     URI: https://github.com/meta-qt5/meta-qt5.git
@@ -95,13 +94,12 @@ environment as below:
     $ mkdir sources && cd sources
     $ git clone https://git.yoctoproject.org/git/poky
     $ cd poky
-    $ git checkout dunfell-23.0.31
-    $ git cherry-pick eb0915c699fbe86488de172d529f073a30d05b6a
+    $ git checkout dunfell-23.0.33
     $ cd ..
 
     $ git clone https://github.com/openembedded/meta-openembedded
     $ cd meta-openembedded
-    $ git checkout daa4619fe3fbf8c28f342c4a7163a84a330f7653
+    $ git checkout 01358b6d705071cc0ac5aefa7670ab235709729a
     $ cd ..
 
     $ git clone https://git.yoctoproject.org/git/meta-gplv2
@@ -111,7 +109,7 @@ environment as below:
     $
     $ git clone https://github.com/renesas-rz/meta-renesas
     $ cd meta-renesas
-    $ git checkout BSP-3.0.6-update4
+    $ git checkout BSP-3.0.7
     $ cd ..
     $
     $ git clone https://github.com/ARIES-Embedded/meta-aries-msrz.git
