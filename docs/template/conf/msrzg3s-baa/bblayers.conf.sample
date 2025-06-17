@@ -6,13 +6,15 @@ BBPATH = "${TOPDIR}"
 BBFILES ?= ""
 
 BBLAYERS ?= " \
-  ${TOPDIR}/../meta-gplv2 \
-  ${TOPDIR}/../poky/meta \
-  ${TOPDIR}/../poky/meta-poky \
-  ${TOPDIR}/../poky/meta-yocto-bsp \
-  ${TOPDIR}/../meta-renesas/meta-rz-common \
-  ${TOPDIR}/../meta-renesas/meta-rzg3s \
-  ${TOPDIR}/../meta-openembedded/meta-oe \
-  ${TOPDIR}/../meta-openembedded/meta-python \
-  ${TOPDIR}/../meta-openembedded/meta-multimedia \
+  ##OEROOT##/../meta-gplv2 \
+  ##OEROOT##/../poky/meta \
+  ##OEROOT##/../poky/meta-poky \
+  ##OEROOT##/../poky/meta-yocto-bsp \
+  ##OEROOT##/../meta-renesas/meta-rz-common \
+  ##OEROOT##/../meta-renesas/meta-rzg3s \
+  ##OEROOT##/../meta-openembedded/meta-oe \
+  ##OEROOT##/../meta-openembedded/meta-python \
+  ##OEROOT##/../meta-openembedded/meta-multimedia \
+  ##OEROOT##/../meta-aries-msrz/meta-msrz-common \
+  ##OEROOT##/../meta-aries-msrz/meta-msrzg3s \
   "
