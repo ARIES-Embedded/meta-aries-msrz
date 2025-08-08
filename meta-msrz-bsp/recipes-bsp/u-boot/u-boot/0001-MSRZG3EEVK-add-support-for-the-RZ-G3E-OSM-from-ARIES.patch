@@ -1,0 +1,739 @@
+From 11bba97cdb766b44eb8db280812c951f1849df2b Mon Sep 17 00:00:00 2001
+From: Wolfgang Grandegger <wg@aries-embedded.de>
+Date: Mon, 14 Jul 2025 14:32:50 +0200
+Subject: [PATCH 1/2] MSRZG3EEVK: add support for the RZ/G3E OSM from ARIES
+ embedded
+
+The MSRZG3E module on the Evaluation Kit (MSRZG3EEVK) is supported.
+
+Signed-off-by: Wolfgang Grandegger <wg@aries-embedded.de>
+---
+ arch/arm/dts/msrzg3eevk.dts         | 276 ++++++++++++++++++++++++++++
+ arch/arm/mach-renesas/Kconfig.rcar3 |   6 +
+ board/aries/msrzg3eevk/Kconfig      |  15 ++
+ board/aries/msrzg3eevk/Makefile     |  13 ++
+ board/aries/msrzg3eevk/msrzg3eevk.c | 189 +++++++++++++++++++
+ configs/msrzg3eevk_defconfig        |  94 ++++++++++
+ include/configs/msrzg3eevk.h        |  64 +++++++
+ 7 files changed, 657 insertions(+)
+ create mode 100644 arch/arm/dts/msrzg3eevk.dts
+ create mode 100644 board/aries/msrzg3eevk/Kconfig
+ create mode 100644 board/aries/msrzg3eevk/Makefile
+ create mode 100644 board/aries/msrzg3eevk/msrzg3eevk.c
+ create mode 100644 configs/msrzg3eevk_defconfig
+ create mode 100644 include/configs/msrzg3eevk.h
+
+diff --git a/arch/arm/dts/msrzg3eevk.dts b/arch/arm/dts/msrzg3eevk.dts
+new file mode 100644
+index 0000000000..8d0520ac0d
+--- /dev/null
++++ b/arch/arm/dts/msrzg3eevk.dts
+@@ -0,0 +1,276 @@
++// SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
++/*
++ * Device Tree Source for the RZ/G3E SMARC EVK board
++ *
++ * Copyright (C) 2023 Renesas Electronics Corp.
++ */
++
++/dts-v1/;
++#include "r9a09g047.dtsi"
++#include "r9a09g047-u-boot.dtsi"
++#include <dt-bindings/pinctrl/rzv2h-pinctrl.h>
++#include <dt-bindings/gpio/gpio.h>
++
++/ {
++	model = "ARIES embedded MSRZG3E on EVK";
++	compatible = "aries,msrzg3eevk", "renesas,r9a09g047e54", "renesas,r9a09g047";
++
++	aliases {
++		serial0 = &scif0;
++		mmc0 = &sdhi0;
++		ethernet0 = &eth0;
++		//ethernet1 = &eth1;
++		i2c8 = &i2c8;
++		spi0 = &xspi;
++	};
++
++	chosen {
++		bootargs = "ignore_loglevel";
++		stdout-path = "serial0:115200n8";
++	};
++
++	memory@48000000 {
++		device_type = "memory";
++		/* first 128MB is reserved for secure area. */
++		reg = <0x0 0x48000000 0x0 0x78000000>;
++	};
++
++	reserved-memory {
++		#address-cells = <2>;
++		#size-cells = <2>;
++		ranges;
++
++		global_cma: linux,cma@58000000 {
++			compatible = "shared-dma-pool";
++			linux,cma-default;
++			reusable;
++			reg = <0x0 0x58000000 0x0 0x10000000>;
++		};
++	};
++
++	reg_1p8v: regulator0 {
++		compatible = "regulator-fixed";
++
++		regulator-name = "fixed-1.8V";
++		regulator-min-microvolt = <1800000>;
++		regulator-max-microvolt = <1800000>;
++		regulator-boot-on;
++		regulator-always-on;
++	};
++
++	reg_3p3v: regulator1 {
++		compatible = "regulator-fixed";
++
++		regulator-name = "fixed-3.3V";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		regulator-boot-on;
++		regulator-always-on;
++	};
++
++	//vccq_sdhi1: regulator-vccq-sdhi1 {
++	//	compatible = "regulator-gpio";
++	//
++	//	regulator-name = "SDHI1 VccQ";
++	//	regulator-min-microvolt = <1800000>;
++	//	regulator-max-microvolt = <3300000>;
++	//
++	//	gpios-states = <0>;
++	//	states = <3300000 0 1800000 1>;
++	//};
++
++	//vccq_sdhi2: regulator-vccq-sdhi2 {
++	//	compatible = "regulator-gpio";
++	//
++	//	regulator-name = "SDHI2 VccQ";
++	//	regulator-min-microvolt = <1800000>;
++	//	regulator-max-microvolt = <3300000>;
++	//
++	//	gpios-states = <0>;
++	//	states = <3300000 0 1800000 1>;
++	//};
++};
++
++&extal_clk {
++	clock-frequency = <24000000>;
++};
++
++&eth0 {
++	phy-handle = <&phy0>;
++	phy-mode = "rgmii-id";
++
++	status = "okay";
++
++	mdio {
++		#address-cells = <1>;
++		#size-cells = <0>;
++		phy0: ethernet-phy@7 {
++			compatible = "ethernet-phy-id0022.1640",
++					"ethernet-phy-ieee802.3-c22";
++			reg = <7>;
++			rxc-skew-psec = <1400>;
++			txc-skew-psec = <1400>;
++			rxdv-skew-psec = <0>;
++			txdv-skew-psec = <0>;
++			rxd0-skew-psec = <0>;
++			rxd1-skew-psec = <0>;
++			rxd2-skew-psec = <0>;
++			rxd3-skew-psec = <0>;
++			txd0-skew-psec = <0>;
++			txd1-skew-psec = <0>;
++			txd2-skew-psec = <0>;
++			txd3-skew-psec = <0>;
++		};
++	};
++};
++
++//&eth1 {
++//	phy-handle = <&phy1>;
++//	phy-mode = "rgmii-id";
++//
++//	status = "okay";
++//
++//	mdio {
++//		#address-cells = <1>;
++//		#size-cells = <0>;
++//		phy1: ethernet-phy@7 {
++//			compatible = "ethernet-phy-id0022.1640",
++//					"ethernet-phy-ieee802.3-c22";
++//			reg = <7>;
++//			rxc-skew-psec = <1400>;
++//			txc-skew-psec = <1400>;
++//			rxdv-skew-psec = <0>;
++//			txdv-skew-psec = <0>;
++//			rxd0-skew-psec = <0>;
++//			rxd1-skew-psec = <0>;
++//			rxd2-skew-psec = <0>;
++//			rxd3-skew-psec = <0>;
++//			txd0-skew-psec = <0>;
++//			txd1-skew-psec = <0>;
++//			txd2-skew-psec = <0>;
++//			txd3-skew-psec = <0>;
++//		};
++//	};
++//};
++
++&i2c8 {
++	pinctrl-0 = <&i2c8_pins>;
++	pinctrl-names = "default";
++
++	status = "okay";
++};
++
++&pinctrl {
++	sdhi0_pins: sd0 {
++		sd0_cd {
++			pinmux = <RZV2H_PINMUX(1, 0, 8)>; /* QSD0_CD */
++		};
++		//sd0_wp {
++		//	pinmux = <RZV2H_PINMUX(1, 1, 8)>; /* QSD0_WP */
++		//};
++	};
++
++	eth0_pins: eth0 {
++		pinmux = <RZV2H_PINMUX(A, 1, 1)>, /* MDC */
++			 <RZV2H_PINMUX(A, 0, 1)>, /* MDIO */
++			 //<RZV2H_PINMUX(C, 2, 1)>, /* PHY_INTR */ not connected
++			 <RZV2H_PINMUX(C, 1, 1)>, /* RXD3 */
++			 <RZV2H_PINMUX(C, 0, 1)>, /* RXD2 */
++			 <RZV2H_PINMUX(B, 7, 1)>, /* RXD1 */
++			 <RZV2H_PINMUX(B, 6, 1)>, /* RXD0 */
++			 <RZV2H_PINMUX(B, 0, 1)>, /* RXC */
++			 <RZV2H_PINMUX(A, 2, 1)>, /* RX_CTL */
++			 <RZV2H_PINMUX(B, 5, 1)>, /* TXD3 */
++			 <RZV2H_PINMUX(B, 4, 1)>, /* TXD2 */
++			 <RZV2H_PINMUX(B, 3, 1)>, /* TXD1 */
++			 <RZV2H_PINMUX(B, 2, 1)>, /* TXD0 */
++			 <RZV2H_PINMUX(B, 1, 1)>, /* TXC */
++			 <RZV2H_PINMUX(A, 3, 1)>; /* TX_CTL */
++	};
++
++	//eth1_pins: eth1 {
++	//	pinmux = <RZV2H_PINMUX(D, 1, 1)>, /* MDC */
++	//		 <RZV2H_PINMUX(D, 0, 1)>, /* MDIO */
++	//		 //<RZV2H_PINMUX(F, 2, 1)>, /* PHY_INTR */ not conncted
++	//		 <RZV2H_PINMUX(F, 1, 1)>, /* RXD3 */
++	//		 <RZV2H_PINMUX(F, 0, 1)>, /* RXD2 */
++	//		 <RZV2H_PINMUX(E, 7, 1)>, /* RXD1 */
++	//		 <RZV2H_PINMUX(E, 6, 1)>, /* RXD0 */
++	//		 <RZV2H_PINMUX(E, 0, 1)>, /* RXC */
++	//		 <RZV2H_PINMUX(D, 2, 1)>, /* RX_CTL */
++	//		 <RZV2H_PINMUX(E, 5, 1)>, /* TXD3 */
++	//		 <RZV2H_PINMUX(E, 4, 1)>, /* TXD2 */
++	//		 <RZV2H_PINMUX(E, 3, 1)>, /* TXD1 */
++	//		 <RZV2H_PINMUX(E, 2, 1)>, /* TXD0 */
++	//		 <RZV2H_PINMUX(E, 1, 1)>, /* TXC */
++	//		 <RZV2H_PINMUX(D, 3, 1)>; /* TX_CTL */
++	//};
++
++	/* I2C_PM */
++	i2c8_pins: i2c8 {
++		pinmux = <RZV2H_PINMUX(3, 6, 4)>, /* SCL8 */
++			 <RZV2H_PINMUX(3, 7, 4)>; /* SDA8 */
++	};
++};
++
++&scif0 {
++	status = "okay";
++};
++
++// eMMC
++//&sdhi0 {
++//	pinctrl-0 = <&sdhi0_pins>;
++//	pinctrl-names = "default";
++//
++//	vmmc-supply = <&reg_3p3v>;
++//	vqmmc-supply = <&reg_1p8v>;
++//	bus-width = <8>;
++//	mmc-hs200-1_8v;
++//	non-removable;
++//	fixed-emmc-driver-type = <1>;
++//	status = "okay";
++//};
++
++// SD card
++&sdhi0 {
++	pinctrl-0 = <&sdhi0_pins>;
++	pinctrl-names = "default";
++
++	vmmc-supply = <&reg_3p3v>;
++	vqmmc-supply = <&reg_1p8v>;
++	bus-width = <4>;
++	sd-uhs-sdr50;
++	sd-uhs-sdr104;
++	status = "okay";
++};
++
++&xspi {
++	status = "okay";
++
++	flash@0 {
++		compatible = "spi-flash", "jedec,spi-nor";
++		reg = <0>;
++		m25p,fast-read;
++		spi-max-frequency = <50000000>;
++		spi-tx-bus-width = <1>;
++		spi-rx-bus-width = <1>;
++
++		partitions {
++			compatible = "fixed-partitions";
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			partition@0 {
++				label = "bl2";
++				reg = <0x00000000 0x00040000>;
++				read-only;
++			};
++
++			partition@60000 {
++				label = "fip";
++				reg = <0x00060000 0x00FA0000>;
++				read-only;
++			};
++		};
++	};
++};
+diff --git a/arch/arm/mach-renesas/Kconfig.rcar3 b/arch/arm/mach-renesas/Kconfig.rcar3
+index 3f4cd2561f..e8b0f95d29 100644
+--- a/arch/arm/mach-renesas/Kconfig.rcar3
++++ b/arch/arm/mach-renesas/Kconfig.rcar3
+@@ -256,6 +256,11 @@ config TARGET_SMARC_RZG3E
+ 	help
+           Support for Renesas RZ/G3E Dev Platform
+ 
++config TARGET_MSRZG3EEVK
++	bool "MSRZG3E Evaluation Kit"
++	help
++          Support for the ARIES MSRZG3E module on the Evaluation Kit
++
+ endchoice
+ 
+ source "board/renesas/condor/Kconfig"
+@@ -275,6 +280,7 @@ source "board/renesas/rzg2lc-dev/Kconfig"
+ source "board/renesas/rzg2ul-dev/Kconfig"
+ source "board/renesas/rzv2h-dev/Kconfig"
+ source "board/renesas/rzg3e-dev/Kconfig"
++source "board/aries/msrzg3eevk/Kconfig"
+ 
+ config MULTI_DTB_FIT_UNCOMPRESS_SZ
+ 	default 0x80000 if TARGET_BEACON_RZG2M
+diff --git a/board/aries/msrzg3eevk/Kconfig b/board/aries/msrzg3eevk/Kconfig
+new file mode 100644
+index 0000000000..b286b79ffb
+--- /dev/null
++++ b/board/aries/msrzg3eevk/Kconfig
+@@ -0,0 +1,15 @@
++if TARGET_MSRZG3EEVK
++
++config SYS_SOC
++	default "renesas"
++
++config SYS_BOARD
++	default "msrzg3eevk"
++
++config SYS_VENDOR
++	default "aries"
++
++config SYS_CONFIG_NAME
++	default "msrzg3eevk"
++
++endif
+diff --git a/board/aries/msrzg3eevk/Makefile b/board/aries/msrzg3eevk/Makefile
+new file mode 100644
+index 0000000000..a4fbc8e827
+--- /dev/null
++++ b/board/aries/msrzg3eevk/Makefile
+@@ -0,0 +1,13 @@
++#
++# board/renesas/rzg3e-dev/Makefile
++#
++# Copyright (C) 2022 Renesas Electronics Corporation
++#
++# SPDX-License-Identifier: GPL-2.0+
++#
++
++ifdef CONFIG_SPL_BUILD
++obj-y	:= ../../renesas/rcar-common/gen3-spl.o
++else
++obj-y	:= msrzg3eevk.o ../../renesas/rcar-common/common.o
++endif
+diff --git a/board/aries/msrzg3eevk/msrzg3eevk.c b/board/aries/msrzg3eevk/msrzg3eevk.c
+new file mode 100644
+index 0000000000..18a9d14a76
+--- /dev/null
++++ b/board/aries/msrzg3eevk/msrzg3eevk.c
+@@ -0,0 +1,189 @@
++#include <common.h>
++#include <cpu_func.h>
++#include <image.h>
++#include <init.h>
++#include <malloc.h>
++#include <netdev.h>
++#include <dm.h>
++#include <dm/platform_data/serial_sh.h>
++#include <asm/processor.h>
++#include <asm/mach-types.h>
++#include <asm/io.h>
++#include <linux/bitops.h>
++#include <linux/errno.h>
++#include <asm/arch/sys_proto.h>
++#include <asm/gpio.h>
++#include <asm/arch/gpio.h>
++#include <asm/arch/renesas.h>
++#include <asm/arch/rcar-mstp.h>
++#include <asm/arch/sh_sdhi.h>
++#include <i2c.h>
++#include <mmc.h>
++#include <dt-bindings/pinctrl/rzv2h-pinctrl.h>
++
++DECLARE_GLOBAL_DATA_PTR;
++
++#define PFC_BASE		0x10410000
++
++#define P(x)			(PFC_BASE + 0x20 + PORT_##x)
++#define PM(x)			(PFC_BASE + 0x140 + 2 * PORT_##x)
++#define PMC(x)			(PFC_BASE + 0x220 + PORT_##x)
++#define PFC(x)			(PFC_BASE + 0x0400 + 0x80 + 4 * PORT_##x)
++#define	PFC_OSCBYPS		(PFC_BASE + 0x3C00)
++
++#define PFC_PWPR		(PFC_BASE + 0x3C04)
++#define PFC_PWPR_REGWE_A	BIT(6)
++#define PFC_PWPR_REGWE_B	BIT(5)
++
++#define PFC_OEN			(PFC_BASE + 0x3C40)
++#define PFC_OEN_OEN0		BIT(0)
++#define PFC_OEN_OEN1		BIT(1)
++
++#define ICU_IPTSR_REG		0x10400060
++
++#define SYS_ADC_CFG		0x10431600
++
++#define CPG_BASE		0x10420000
++#define CPG_SSEL0		(CPG_BASE + 0x0300)
++#define CPG_SSEL1		(CPG_BASE + 0x0304)
++#define CPG_SSEL(x)		(CPG_BASE + 0x300 + (x) * 4)
++#define CPG_SSEL_WEN_L(x)	(BIT(16) << ((x) * 4))
++#define CPG_SSEL_L(x)		(BIT(0) << ((x) * 4))
++#define CPG_BUS_MSTOP(x)	(CPG_BASE + 0xD00 + (x) * 4 - 0x4)
++#define CPG_LP_VSPI_CTL1	(CPG_BASE + 0xC9C)
++#define CPG_LP_VSPI_CTL2	(CPG_BASE + 0xCA0)
++
++void msrzg3e_cpg_init_setting(void)
++{
++	/* Use CSDIV_2to16_PLLDSI for DSI0/1_VCLK */
++	*(volatile u32 *)CPG_SSEL(3) = (CPG_SSEL_WEN_L(1) | CPG_SSEL_WEN_L(0) | CPG_SSEL_L(1) | CPG_SSEL_L(0));
++
++	/* Release Module stop state for all needed IPs */
++	*(volatile u32 *)CPG_BUS_MSTOP(1) = 0xCFFF0000;
++	*(volatile u32 *)CPG_BUS_MSTOP(2) = 0xFCFF0000;
++	*(volatile u32 *)CPG_BUS_MSTOP(3) = 0xFE7D0000;
++	*(volatile u32 *)CPG_BUS_MSTOP(4) = 0x78AF0000;
++	*(volatile u32 *)CPG_BUS_MSTOP(5) = 0xFFEA0000;
++	*(volatile u32 *)CPG_BUS_MSTOP(6) = 0xFFFF0000;
++	*(volatile u32 *)CPG_BUS_MSTOP(7) = 0x5F830000;
++	*(volatile u32 *)CPG_BUS_MSTOP(8) = 0x18FC0000;
++	*(volatile u32 *)CPG_BUS_MSTOP(9) = 0xFC100000;
++	*(volatile u32 *)CPG_BUS_MSTOP(10) = 0xD8BE0000;
++	*(volatile u32 *)CPG_BUS_MSTOP(11) = 0xFFFF0000;
++	*(volatile u32 *)CPG_BUS_MSTOP(12) = 0x06030000;
++	*(volatile u32 *)CPG_BUS_MSTOP(13) = 0x063F0000;
++
++	/* For VSPI LPI initial setting */
++	*(volatile u32 *)CPG_LP_VSPI_CTL1 = 0x01111111;
++	*(volatile u32 *)CPG_LP_VSPI_CTL2 = 0x1;
++}
++
++void s_init(void)
++{
++
++	/* Enable writing to PFC and PMC registers */
++       *(volatile u32 *)PFC_PWPR = *(volatile u32 *)PFC_PWPR | PFC_PWPR_REGWE_A | PFC_PWPR_REGWE_B ;
++
++	/* Enable ADC */
++	*(volatile u32 *)(SYS_ADC_CFG) = 0;
++
++	/* QSD1 */
++	*(volatile u8 *)PMC(1) &= ~(BIT(5) | BIT(6)); /* P1_5, P1_6 */
++	*(volatile u8 *)P(1) = (*(volatile u8 *)P(1) & ~BIT(5)) | BIT(6); /* P1_5 = 0, P1_6 = 1 */
++	*(volatile u16 *)PM(1) = (*(volatile u16 *)PM(1) & ~GENMASK(13, 10)) | BIT(13) | BIT(11); /* P1_5, P1_6 output */
++
++	*(volatile u32 *)PFC(G) = 0x00111111;
++	*(volatile u8 *)PMC(G)  = 0x3f;
++
++	/* QSD2 */
++	*(volatile u8 *)PMC(K) &= ~(BIT(1) | BIT(2)); /* PK_1, PK_2 */
++	*(volatile u8 *)P(K) = (*(volatile u8 *)P(K) & ~BIT(1)) | BIT(2); /* PK_1 = 0, PK_2 = 1 */
++	*(volatile u16 *)PM(K) = (*(volatile u16 *)PM(K) & ~GENMASK(5, 2)) | BIT(5) | BIT(3); /* PK_1, PK_2 output */
++
++	*(volatile u32 *)PFC(H) = 0x00111111;
++	*(volatile u8 *)PMC(H)  = 0x3f;
++
++	/* ETH0 */
++	*(volatile u8 *)PMC(A)  = 0x0f;
++	*(volatile u32 *)PFC(A) = 0x00001111;
++	*(volatile u8 *)PMC(B)  = 0xff;
++	*(volatile u32 *)PFC(B) = 0x11111111;
++	*(volatile u8 *)PMC(C)  = 0x07;
++	*(volatile u32 *)PFC(C) = 0x00000111;
++
++	/* ETH1 */
++	*(volatile u8 *)PMC(D)  = 0x0f;
++	*(volatile u32 *)PFC(D) = 0x00001111;
++	*(volatile u8 *)PMC(E)  = 0xff;
++	*(volatile u32 *)PFC(E) = 0x11111111;
++	*(volatile u8 *)PMC(F)  = 0x07;
++	*(volatile u32 *)PFC(F) = 0x00000111;
++
++	/* Enale OE of IO block for xSPI */
++	*(volatile u32 *)(PFC_OEN) &= ~GENMASK(5,2);
++
++	*(volatile u32 *)(PFC_OEN) &= ~(PFC_OEN_OEN1 | PFC_OEN_OEN0);
++	while((*(volatile u32 *)(PFC_OEN) & (PFC_OEN_OEN1 | PFC_OEN_OEN0)) != 0x0)
++
++	/* Disable writing to PFC and PMC registers */
++       *(volatile u32 *)PFC_PWPR = *(volatile u32 *)PFC_PWPR & ~(PFC_PWPR_REGWE_A | PFC_PWPR_REGWE_B);
++
++       *(volatile u32 *)(ICU_IPTSR_REG) = 0;
++
++	/* Disable SMUX2_GBE0_RXCLK and SMUX2_GBE1_RXCLK */
++	*(volatile u32 *) (CPG_SSEL0) = 0x10000000;
++	*(volatile u32 *) (CPG_SSEL1) = 0x00100000;
++
++	/* Enable SMUX2_GBE0_RXCLK and SMUX2_GBE1_RXCLK */
++	*(volatile u32 *) (CPG_SSEL0) = 0x10001000;
++	*(volatile u32 *) (CPG_SSEL1) = 0x00100010;
++
++       /* Set Bypass and Powerdown mode for Audio OSC */
++#if CONFIG_TARGET_MSRZG3EEVK
++	*(volatile u32 *)(PFC_OSCBYPS) = (*(volatile u32 *)(PFC_OSCBYPS) & 0xFFF3FC00) | 0x000C0003;
++#else
++	*(volatile u32 *)(PFC_OSCBYPS) = 0x000C0002;
++#endif
++
++	msrzg3e_cpg_init_setting();
++}
++
++int board_early_init_f(void)
++{
++
++	return 0;
++}
++
++int board_init(void)
++{
++	/* adress of boot parameters */
++	gd->bd->bi_boot_params = CONFIG_TEXT_BASE + 0x50000;
++
++	return 0;
++}
++
++#if CONFIG_TARGET_MSRZG3EEVK
++int board_late_init(void)
++{
++	struct udevice *dev;
++	const u8 greenpak_i2c_bus = 8;
++	const u8 greenpak_i2c_addr = 0x38;
++	const u8 od_rst = 0x38;
++	const u8 zero = 0;
++	int ret;
++
++	ret = i2c_get_chip_for_busnum(greenpak_i2c_bus, greenpak_i2c_addr, 1,
++				      &dev);
++	if (!ret) {
++		dm_i2c_write(dev, 0x5c, &zero, 1);
++		dm_i2c_write(dev, 0x5c, &od_rst, 1);
++	}
++
++	return 0;
++}
++#endif
++
++void reset_cpu(void)
++{
++
++}
+diff --git a/configs/msrzg3eevk_defconfig b/configs/msrzg3eevk_defconfig
+new file mode 100644
+index 0000000000..450a84adbf
+--- /dev/null
++++ b/configs/msrzg3eevk_defconfig
+@@ -0,0 +1,94 @@
++CONFIG_ARM=y
++CONFIG_ARCH_CPU_INIT=y
++CONFIG_ARCH_RENESAS=y
++CONFIG_TEXT_BASE=0x50000000
++CONFIG_ENV_SIZE=0x20000
++CONFIG_ENV_OFFSET=0xFFFE0000
++CONFIG_SYS_LOAD_ADDR=0x58000000
++CONFIG_DM_GPIO=y
++CONFIG_RCAR_GEN3=y
++CONFIG_R9A09G047=y
++CONFIG_TARGET_MSRZG3EEVK=y
++CONFIG_DEFAULT_DEVICE_TREE="msrzg3eevk"
++CONFIG_SMBIOS_PRODUCT_NAME=""
++CONFIG_SPL=n
++CONFIG_FIT=y
++CONFIG_USE_BOOTARGS=y
++CONFIG_BOOTARGS="root=/dev/nfs rw nfsroot=192.168.0.1:/export/rfs ip=192.168.0.20"
++CONFIG_SUPPORT_RAW_INITRD=y
++CONFIG_DEFAULT_FDT_FILE="msrzg3eevk.dtb"
++CONFIG_VERSION_VARIABLE=y
++CONFIG_HUSH_PARSER=y
++CONFIG_CMD_BOOTZ=y
++CONFIG_CMD_GPIO=y
++CONFIG_CMD_I2C=y
++CONFIG_CMD_MMC=y
++CONFIG_CMD_PCI=y
++CONFIG_CMD_USB=y
++CONFIG_CMD_DHCP=y
++CONFIG_CMD_MII=y
++CONFIG_CMD_PING=y
++CONFIG_CMD_EXT2=y
++CONFIG_CMD_EXT4=y
++CONFIG_CMD_EXT4_WRITE=y
++CONFIG_CMD_FAT=y
++CONFIG_CMD_FS_GENERIC=y
++CONFIG_OF_CONTROL=y
++CONFIG_OF_PLATDATA=y
++CONFIG_OF_LIST="msrzg3eevk"
++CONFIG_MULTI_DTB_FIT_LZO=y
++CONFIG_MULTI_DTB_FIT_USER_DEFINED_AREA=y
++CONFIG_ENV_OVERWRITE=y
++CONFIG_SYS_RELOC_GD_ENV_ADDR=y
++CONFIG_REGMAP=y
++CONFIG_SYSCON=y
++#CONFIG_CLK=y
++#CONFIG_CLK_RENESAS=y
++#CONFIG_CLK_R9A09G047=y
++CONFIG_RCAR_GPIO=y
++CONFIG_PINCTRL_PFC_RZV2H=y
++CONFIG_RZV2H_GPIO=y
++CONFIG_DM_I2C=y
++CONFIG_SYS_I2C_RCAR_IIC=y
++CONFIG_SH_SDHI=y
++CONFIG_BITBANGMII=y
++CONFIG_PHY_MICREL=y
++CONFIG_PHY_MICREL_KSZ90X1=y
++CONFIG_DM_ETH=y
++CONFIG_DM_ETH_PHY=y
++CONFIG_DWC_ETH_QOS=y
++CONFIG_DWC_ETH_QOS_RZV2H=y
++CONFIG_RENESAS_RAVB=y
++CONFIG_PCI=y
++CONFIG_DM_PCI=y
++CONFIG_PCI_RCAR_GEN3=y
++CONFIG_DM_REGULATOR=y
++CONFIG_DM_REGULATOR_FIXED=y
++CONFIG_DM_REGULATOR_GPIO=y
++CONFIG_SCIF_CONSOLE=y
++CONFIG_TEE=y
++CONFIG_OPTEE=y
++CONFIG_USB=y
++CONFIG_DM_USB=y
++CONFIG_USB_XHCI_HCD=y
++CONFIG_USB_EHCI_HCD=y
++CONFIG_USB_EHCI_GENERIC=y
++CONFIG_USB_STORAGE=y
++CONFIG_OF_LIBFDT_OVERLAY=y
++CONFIG_SMBIOS_MANUFACTURER=""
++CONFIG_ENV_IS_IN_MMC=y
++CONFIG_SYS_I2C_RZG2L_RIIC=y
++CONFIG_SPI_FLASH=y
++CONFIG_SPI_FLASH_BAR=y
++CONFIG_SPI_FLASH_USE_4K_SECTORS=y
++CONFIG_SPI=y
++CONFIG_DM_SPI=y
++CONFIG_SPI_FLASH_WINBOND=y
++CONFIG_RENESAS_RPC_SPI=y
++CONFIG_CMD_SF=y
++CONFIG_CMD_SPI=y
++CONFIG_SPI_FLASH_STMICRO=y
++CONFIG_DM_SPI_FLASH=y
++CONFIG_OF_UPSTREAM=n
++CONFIG_MTD=y
++CONFIG_BOARD_LATE_INIT=y
+diff --git a/include/configs/msrzg3eevk.h b/include/configs/msrzg3eevk.h
+new file mode 100644
+index 0000000000..0cb4a77817
+--- /dev/null
++++ b/include/configs/msrzg3eevk.h
+@@ -0,0 +1,64 @@
++/* SPDX-License-Identifier: GPL-2.0+ */
++/*
++ * Copyright (C) 2022 Renesas Electronics Corporation
++ */
++
++#ifndef __MSRZG3EEVK_H
++#define __MSRZG3EEVK_H
++
++#include <asm/arch/renesas.h>
++
++#define CONFIG_REMAKE_ELF
++
++#ifdef CONFIG_SPL
++#define CONFIG_SPL_TARGET	"spl/u-boot-spl.scif"
++#endif
++
++/* boot option */
++
++#define CONFIG_CMDLINE_TAG
++#define CONFIG_SETUP_MEMORY_TAGS
++#define CONFIG_INITRD_TAG
++
++/* Generic Interrupt Controller Definitions */
++/* RZ/G3E use GIC-v3 */
++#define CONFIG_GICV3
++#define GICD_BASE	0x14900000
++#define GICR_BASE	0x14940000
++
++/* console */
++#define CONFIG_SYS_CBSIZE		2048
++#define CONFIG_SYS_BARGSIZE		CONFIG_SYS_CBSIZE
++#define CONFIG_SYS_BAUDRATE_TABLE	{ 115200, 38400 }
++
++/* PHY needs a longer autoneg timeout */
++#define PHY_ANEG_TIMEOUT		20000
++
++/* MEMORY */
++#define CONFIG_SYS_INIT_SP_ADDR		CONFIG_SYS_TEXT_BASE
++
++#define	DRAM_RSV_SIZE			0x08000000
++#define	CFG_MAX_MEM_MAPPED		(0x80000000u - DRAM_RSV_SIZE)
++
++/* SDHI clock freq */
++#define CONFIG_SH_SDHI_FREQ		133000000
++
++/* The HF/QSPI layout permits up to 1 MiB large bootloader blob */
++#define CONFIG_BOARD_SIZE_LIMIT		1048576
++
++/* ENV setting */
++#define CFG_EXTRA_ENV_SETTINGS \
++	"usb_pgood_delay=2000\0" \
++	"bootm_size=0x10000000 \0" \
++	"mmcbootargs=setenv bootargs rw rootwait earlycon root=/dev/mmcblk0p2 \0" \
++	"bootimage=booti 0x48080000 - 0x48000000 \0" \
++	"bootfile=boot/Image\0" \
++	"fdt_file=boot/msrzg3eevk-sd.dtb\0" \
++	"mmcload=ext4load mmc 0:2 0x48080000 ${bootfile};ext4load mmc 0:2 0x48000000 ${fdt_file};run mmcbootargs \0"
++#define CONFIG_BOOTCOMMAND      "env default -a;run mmcload bootimage"
++
++/* For board */
++/* Ethernet RAVB */
++#define CONFIG_BITBANGMII_MULTI
++
++#endif /* __MSRZG3EEVK_H */
+-- 
+2.34.1
+
