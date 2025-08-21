@@ -82,7 +82,7 @@ You can download the public Yocto Project source layers to prepare the build env
     $
     $ git clone  https://github.com/renesas-rz/meta-renesas.git
     $ cd meta-renesas
-    $ git checkout <tag>
+    $ git checkout RZG3E-BSP-1.0.0
     $ cd ..
     $
     $ git clone  https://git.yoctoproject.org/git/meta-virtualization
@@ -96,8 +96,6 @@ You can download the public Yocto Project source layers to prepare the build env
     $ cd ..
     $
 ```
-
-Replace the \<tag\> with the latest tag, currently RZG3E-BSP-1.0.0.
 
 The BSP can be built default normally: copy the template files to build folder, manually modifying `bblayer.conf`, `local.conf`
 files then using `bitbake` to build the image. Or you can do the steps below:
@@ -199,7 +197,7 @@ Assume `$KAS_WORK_DIR` is the path of the kas working directory (defaults to the
 **Step 1: Clone `meta-aries-msrz` in `KAS_WORK_DIR`**
 
 `KAS_WORK_DIR` is the path of the KAS work directory, current working directory is the default.
-Run the below commands to clone `meta-aries-msrz` and check out corresponding tag.
+Run the below commands to clone `meta-aries-msrz`.
 
 ```bash
     $ cd ${KAS_WORK_DIR}
@@ -252,7 +250,7 @@ The `kas menu` command allows for interactive configuration, typically based on 
     $ cd ${KAS_WORK_DIR}
     $ git clone https://github.com/ARIES-Embedded/meta-aries-msrz.git
     $ cd meta-aries-msrz
-    $ git checkout <tag>
+    $ git switch scarthgap/msrz
     $ cd ..
 ```
 
