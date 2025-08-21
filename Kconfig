@@ -16,16 +16,16 @@ choice
 	prompt "Select machine:"
 	default MACHINE_MSRZG3EEVK
 
-	config MACHINE_MSRZGEEVK
-	bool "msrzgeevk"
+	config MACHINE_MSRZG3EEVK
+	bool "msrzg3eevk"
 	select FAMILY_G3E
 	help
 		Select the Renesas RZ/G3E reference platform.
 
-	config KAS_INCLUDE_MACHINE_MSRZGEEVK
+	config KAS_INCLUDE_MACHINE_MSRZG3EEVK
 	string
-	depends on MACHINE_MSRZGEEVK
-	default "kas/machines/msrzgeevk.yml"
+	depends on MACHINE_MSRZG3EVK
+	default "kas/machines/msrzg3eevk.yml"
 
 endchoice
 endmenu

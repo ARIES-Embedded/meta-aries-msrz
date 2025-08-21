@@ -6,7 +6,13 @@ distro: rz-vlp
 build_system: openembedded
 
 repos:
+  meta-aries-msrz:
+    layers:
+      meta-msrz-bsp:
   meta-renesas:
+    url: "https://github.com/renesas-rz/meta-renesas"
+    # RZG3E-BSP-1.0.0
+    commit: ff4725b027cb1297a2173e6134a010f47265bcb4
     layers:
       meta-rz-distro:
       meta-rz-bsp:

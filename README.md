@@ -47,7 +47,7 @@ This layer (for the Scarthgap release) depends on the following specific revisio
 
 ### Build Yocto BSP
 
-Assume that $WORK is the current working directory.
+Assume that `$WORK` is the current working directory.
 The following instructions require a Poky installation (or equivalent).
 
 Below git configuration is required:
@@ -59,8 +59,8 @@ Below git configuration is required:
 To download proprietary Multimedia and Graphics library and related Linux
 drivers, please follow the [meta-renesas build instructions][].
 Graphic drivers are required for Wayland. Multimedia drivers are optional.
-After downloading the proprietary package, please decompress them then put meta-rz-features folder at $WORK directory,
-alongside poky, meta-arm, etc. (e.g., $WORK/meta-rz-features).
+After downloading the proprietary package, please decompress them then put meta-rz-features folder at `$WORK` directory,
+alongside `poky`, `meta-arm`, etc. (e.g., `$WORK/meta-rz-features`).
 
 You can download the public Yocto Project source layers to prepare the build environment as shown below. Ensure you checkout the specific revisions listed in the "Dependencies" section.
 ```bash
@@ -99,15 +99,15 @@ You can download the public Yocto Project source layers to prepare the build env
 
 Replace the \<tag\> with the latest tag, currently RZG3E-BSP-1.0.0.
 
-The BSP can be built default normally: copy the template files to build folder, manually modifying *bblayer.conf*, *local.conf*
-files then using bitbake to build the image. Or you can do the steps below:
+The BSP can be built default normally: copy the template files to build folder, manually modifying `bblayer.conf`, `local.conf`
+files then using `bitbake` to build the image. Or you can do the steps below:
 
-- Initialize a build using the 'oe-init-build-env' script in Poky and point TEMPLATECONF to platform conf path. e.g.:
+- Initialize a build using the `oe-init-build-env` script in Poky and point `TEMPLATECONF` to platform conf path. e.g.:
    ```bash
    $ TEMPLATECONF=$PWD/meta-aries-msrz/meta-msrz-bsp/conf/templates/rz-conf/ source poky/oe-init-build-env build
    ```
 
-- To build optional features (Docker, Codec, or Graphics), you can use "bitbake-layers add-layer" from within the build directory:
+- To build optional features (Docker, Codec, or Graphics), you can use `bitbake-layers add-layer` from within the build directory:
    ```bash
    # For Docker
    $ bitbake-layers add-layer ../meta-openembedded/meta-networking
@@ -122,7 +122,7 @@ files then using bitbake to build the image. Or you can do the steps below:
 
    ```
 
-- Build the target file system image using bitbake:
+- Build the target file system image using `bitbake`:
    ```bash
     # Replace <machine> with your target board (e.g., msrzg3evk)
     # Replace <target> with your desired image type (e.g., minimal, weston)
@@ -137,32 +137,32 @@ Example: ```MACHINE=msrzg3eevk bitbake core-image-weston```
 |   RZ/G3E    |    MSRZG3E    |      MRZG3EEVK         |         msrzg3eevk         |
 
 After completing the images for the target machine will be available in the output
-directory _'tmp/deploy/images/\<machine\>'_.
+directory `tmp/deploy/images/\<machine\>/`.
 
 Images generated:
-* Flash_Writer_SCIF_MSRZG3EEVK_LPDDR4.mot (Flash-Writer image)
-* bl2_bp_\*.bin, bl2_bp_\*.srec, fip_\*.bin, fip_\*.srec (Bootloader images)
-* Image (generic Linux Kernel binary image file)
-* DTB for target machine
-* core-image-\<target\>-\<machine\>.tar.bz2 (rootfs tar+bzip2)
-* core-image-\<target\>-\<machine\>.ext4  (rootfs ext4 format)
-* core-image-\<target\>-\<machine\>.wic.gz  (rootfs wic gz format)
-* core-image-\<target\>-\<machine\>.wic.bmap  (rootfs wic block map format)
+* `Flash_Writer_SCIF_MSRZG3EEVK_LPDDR4.mot` (Flash-Writer image)
+* `bl2_bp_*.bin, bl2_bp_*.srec, fip_*.bin, fip_*.srec` (Bootloader images)
+* `Image` (generic Linux Kernel binary image file)
+* `*.dtb` for target machine
+* `core-image-\<target\>-\<machine\>.tar.bz2` (rootfs tar+bzip2)
+* `core-image-\<target\>-\<machine\>.ext4`  (rootfs ext4 format)
+* `core-image-\<target\>-\<machine\>.wic.gz`  (rootfs wic gz format)
+* `core-image-\<target\>-\<machine\>.wic.bmap`  (rootfs wic block map format)
 
 ### Build BSP SDK
 
-Use bitbake -c populate_sdk for generating the toolchain SDK. For example, to build an SDK for core-image-weston on a specific <machine>:
+Use `bitbake -c populate_sdk` for generating the toolchain SDK. For example, to build an SDK for `core-image-weston` on a specific <machine>:
 
 ```bash
     # For a 64-bit target SDK (aarch64) based on core-image-weston:
     $ bitbake core-image-weston -c populate_sdk
 ```
-The SDK installer script can be found in the output directory _'tmp/deploy/sdk'_
+The SDK installer script can be found in the output directory `tmp/deploy/sdk`
 
-It will be named similarly to: _'rz-vlp-glibc-x86_64-core-image-weston-cortexa55-<machine>-toolchain-<version>.sh'_
+It will be named similarly to: `rz-vlp-glibc-x86_64-core-image-weston-cortexa55-<machine>-toolchain-<version>.sh`
 
 **Usage of toolchain SDK:**
-Install the SDK to the default location: _/opt/poky/<version>_
+Install the SDK to the default location: `/opt/poky/<version>`
 For 64-bit target SDK:
 ```bash
     $ sh rz-vlp-glibc-x86_64-core-image-weston-cortexa55-smarc-rzg2l-toolchain-5.0.8.sh
@@ -175,78 +175,78 @@ To use the 64-bit application development environment, source the environment sc
 
 ### Build configs
 
-It is possible to change some build configs by modifying your _local.conf_ file (usually $WORK/build/conf/local.conf):
-* **Realtime Linux:** To build with the PREEMPT_RT Linux kernel, add or modify the following line in _local.conf_:
+It is possible to change some build configs by modifying your `local.conf` file (usually `$WORK/build/conf/local.conf`):
+* **Realtime Linux:** To build with the PREEMPT_RT Linux kernel, add or modify the following line in `local.conf`:
   ```
   PREFERRED_PROVIDER_virtual/kernel = "linux-renesas-rt"
   ```
 
-* **Docker:** To include Docker support in your image, ensure the following line is present and uncommented in _local.conf_:
+* **Docker:** To include Docker support in your image, ensure the following line is present and uncommented in `local.conf`:
   ```
   DISTRO_FEATURES:append = " virtualization docker"
   ```
 
-## Using kas tool to build BSP
+## Using KAS tool to build BSP
 
-Kas provides an easy mechanism to set up and build Yocto BSP projects.
-For kas's user guide, how to install kas..., please refer to: https://kas.readthedocs.io/en/latest/userguide.html.
-For command-line usage and kas environment variables, please also refer to the user guide.
+KAS provides an easy mechanism to set up and build Yocto BSP projects.
+Please refer to [KAS User's Guide][] on how to install KAS.
+For command-line usage and KAS environment variables, please also refer to the user guide.
 
-Assume $KAS_WORK_DIR is the path of the kas working directory (defaults to the current working directory if not set).
+Assume `$KAS_WORK_DIR` is the path of the kas working directory (defaults to the current working directory if not set).
 
-### How to buid with kas command
+### How to buid with `kas` command
 
-**Step 1: Clone meta-aries-msrz in KAS_WORK_DIR**
+**Step 1: Clone `meta-aries-msrz` in `KAS_WORK_DIR`**
 
-KAS_WORK_DIR is the path of the kas work directory, current working directory is the default.
-Run the below commands to clone meta-aries-msrz and check out corresponding tag.
+`KAS_WORK_DIR` is the path of the KAS work directory, current working directory is the default.
+Run the below commands to clone `meta-aries-msrz` and check out corresponding tag.
 
 ```bash
     $ cd ${KAS_WORK_DIR}
     $ git clone https://github.com/ARIES-Embedded/meta-aries-msrz.git
     $ cd meta-aries-msrz
-    $ git checkout
+    $ git switch scarthgap/msrz
     $ cd ..
 ```
 
 **Step 2: Config and build the BSP**
 
-Run the "kas build" command, pointing to the appropriate YAML configuration files within the meta-aries-msrz directory
+Run the `kas build` command, pointing to the appropriate YAML configuration files within the meta-aries-msrz directory
 
 ```bash
-    $ kas build meta-aries-msrz/kas/base.yml:meta-aries-msrz/kas/machines/msrzg3eevk.yml:meta-aries-msrz/kas/images/core-image-weston.yml
+    $ kas build meta-aries-msrz/kas/base.yml:meta-aries-msrz/kas/machines/msrzg3eevk.yml:meta-aries-msrz/kas/images/core-image-minimal.yml
 ```
 
 To specify a download directory, you can use this command instead:
 ```bash
-    $ DL_DIR=<download-directory-path> kas build meta-aries-msrz/kas/base.yml:meta-aries-msrz/kas/machines/msrzg3eevk.yml:meta-aries-msrz/kas/images/core-image-weston.yml
+    $ DL_DIR=<download-directory-path> kas build meta-aries-msrz/kas/base.yml:meta-aries-msrz/kas/machines/msrzg3eevk.yml:meta-aries-msrz/kas/images/core-image-minimal.yml
 ```
 
-### How to buid with kas-container command
+### How to buid with `kas-container` command
 
 This method uses a containerized environment for the build.
 
-**Step 1: Clone meta-aries-msrz in KAS_WORK_DIR**
+**Step 1: Clone `meta-aries-msrz` in `KAS_WORK_DIR`**
 
 ```bash
     $ cd ${KAS_WORK_DIR}
     $ git clone https://github.com/ARIES-Embedded/meta-aries-msrz.git
     $ cd meta-aries-msrz
-    $ git checkout <tag>
+    $ git switch scarthgap/msrz
     $ cd ..
 ```
 
 **Step 2: Config and build the BSP**
 
 ```bash
-    $ kas-container build meta-aries-msrz/kas/base.yml:meta-aries-msrz/kas/machines/msrzg3eevk.yml:meta-aries-msrz/kas/images/core-image-weston.yml
+    $ kas-container build meta-aries-msrz/kas/base.yml:meta-aries-msrz/kas/machines/msrzg3eevk.yml:meta-aries-msrz/kas/images/core-image-minimal.yml
 ```
 
-### How to buid with kas menu
+### How to buid with `kas menu` command
 
-The kas menu command allows for interactive configuration, typically based on _Kconfig_ files if provided by the kas setup.
+The `kas menu` command allows for interactive configuration, typically based on `Kconfig` files if provided by the KAS setup.
 
-**Step 1: Clone meta-aries-msrz in KAS_WORK_DIR**
+**Step 1: Clone `meta-aries-msrz` in `KAS_WORK_DIR`**
 
 ```bash
     $ cd ${KAS_WORK_DIR}
@@ -256,21 +256,22 @@ The kas menu command allows for interactive configuration, typically based on _K
     $ cd ..
 ```
 
-**Step 2: Launch kas menu**
+**Step 2: Launch `kas menu`**
 
-The kas menu command targets a _Kconfig_ file in the folder _meta-aries-msrz_.
+The `kas menu` command targets a `Kconfig` file in the folder `meta-aries-msrz`.
 ```bash
     $ kas menu meta-aries-msrz/Kconfig
 ```
 
 When the menu appears, continue to select the expected configuration(machine, image, docker option...).
-Then push "Save & Build" button to save the current configuration and build the image. The defaut build folder is
-*${KAS_WORK_DIR}/build*.
+Then push "Save & Build" button to save the current configuration and build the image. The defaut build folder is `${KAS_WORK_DIR}/build`.
 
-With kas menu, you also can use it to change the configuration when building with kas or kas container.
+With `kas menu`, you also can use it to change the configuration when building with `kas` or `kas container`.
 Just run the menu, re-configuration, push "Save & Exit" button, exit the menu and rebuild.
 
 [ARIES embedded]: https://www.aries-embedded.com
 [MSRZG3E]: https://www.aries-embedded.com/system-on-module/cpu/rzg3e-renesas-cortexa55quadcore-msrzg3e-osm-ethernet-pcie-npu
 [MSRZG3EEVK]: https://www.aries-embedded.com/evaluation-kit/cpu/rzg3e-renesas-cortexa55quadcore-msrzg3e-osm-ethernet-pcie-npu
 [meta-renesas build instructions]: https://github.com/renesas-rz/meta-renesas?tab=readme-ov-file#build-instructions
+[KAS User's Guide]: https://kas.readthedocs.io/en/latest/userguide.html
+ 
