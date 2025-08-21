@@ -209,7 +209,7 @@ Run the below commands to clone `meta-aries-msrz`.
 
 **Step 2: Config and build the BSP**
 
-Run the `kas build` command, pointing to the appropriate YAML configuration files within the meta-aries-msrz directory
+Run the `kas build` command, pointing to the appropriate YAML configuration files within the `meta-aries-msrz` directory
 
 ```bash
     $ kas build meta-aries-msrz/kas/base.yml:meta-aries-msrz/kas/machines/msrzg3eevk.yml:meta-aries-msrz/kas/images/core-image-minimal.yml
