@@ -64,3 +64,7 @@ local_conf_header:
 
     # Additional image features
     USER_CLASSES ?= "buildstats"
+
+    # Delete the source/object/binary files once a package is built to
+    # preserve a lot of disk space
+    INHERIT += "rm_work"
