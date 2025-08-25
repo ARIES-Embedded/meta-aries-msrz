@@ -12,22 +12,24 @@ config FAMILY_G3E
 bool
 
 menu "Machines"
-choice
-	prompt "Select machine:"
-	default MACHINE_MSRZG3EEVK
+#choice
+#	prompt "Select machine:"
+#	default MACHINE_MSRZG3EEVK
 
+	# Currently, there is only one machine supported
 	config MACHINE_MSRZG3EEVK
 	bool "msrzg3eevk"
+	default "y"
 	select FAMILY_G3E
 	help
-		Select the Renesas RZ/G3E reference platform.
+		Select the ARIES embedded MSRZG3E module on the EVK
 
 	config KAS_INCLUDE_MACHINE_MSRZG3EEVK
 	string
-	depends on MACHINE_MSRZG3EVK
+	depends on MACHINE_MSRZG3EEVK
 	default "kas/machines/msrzg3eevk.yml"
 
-endchoice
+#endchoice
 endmenu
 
 menu "Targets"
