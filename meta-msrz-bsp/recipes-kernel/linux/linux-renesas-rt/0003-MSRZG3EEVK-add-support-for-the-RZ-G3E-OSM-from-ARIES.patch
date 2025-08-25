@@ -1,0 +1,882 @@
+From 1aa1bee97be6f96844e19c3ba42d5fab98f3c44e Mon Sep 17 00:00:00 2001
+From: Wolfgang Grandegger <wg@aries-embedded.de>
+Date: Wed, 6 Aug 2025 19:55:51 +0200
+Subject: [PATCH 3/3] MSRZG3EEVK: add support for the RZ/G3E OSM from ARIES
+ embedded
+
+The MSRZG3E module on the Evaluation Kit (MSRZG3EEVK) is supported.
+
+Signed-off-by: Wolfgang Grandegger <wg@aries-embedded.de>
+---
+ arch/arm64/boot/dts/Makefile                  |   1 +
+ arch/arm64/boot/dts/aries/Makefile            |   2 +
+ arch/arm64/boot/dts/aries/msrzg3e.dtsi        | 317 ++++++++++++++
+ arch/arm64/boot/dts/aries/msrzg3eevk-emmc.dts |  57 +++
+ arch/arm64/boot/dts/aries/msrzg3eevk-sd.dts   |  47 +++
+ arch/arm64/boot/dts/aries/msrzg3eevk.dtsi     | 389 ++++++++++++++++++
+ 6 files changed, 813 insertions(+)
+ create mode 100644 arch/arm64/boot/dts/aries/Makefile
+ create mode 100644 arch/arm64/boot/dts/aries/msrzg3e.dtsi
+ create mode 100644 arch/arm64/boot/dts/aries/msrzg3eevk-emmc.dts
+ create mode 100644 arch/arm64/boot/dts/aries/msrzg3eevk-sd.dts
+ create mode 100644 arch/arm64/boot/dts/aries/msrzg3eevk.dtsi
+
+diff --git a/arch/arm64/boot/dts/Makefile b/arch/arm64/boot/dts/Makefile
+index 7b107fa7414b..f4157accb3b6 100644
+--- a/arch/arm64/boot/dts/Makefile
++++ b/arch/arm64/boot/dts/Makefile
+@@ -7,6 +7,7 @@ subdir-y += amd
+ subdir-y += amlogic
+ subdir-y += apm
+ subdir-y += apple
++subdir-y += aries
+ subdir-y += arm
+ subdir-y += bitmain
+ subdir-y += broadcom
+diff --git a/arch/arm64/boot/dts/aries/Makefile b/arch/arm64/boot/dts/aries/Makefile
+new file mode 100644
+index 000000000000..c360a8446277
+--- /dev/null
++++ b/arch/arm64/boot/dts/aries/Makefile
+@@ -0,0 +1,2 @@
++dtb-$(CONFIG_ARCH_R9A09G047) += msrzg3eevk-sd.dtb
++dtb-$(CONFIG_ARCH_R9A09G047) += msrzg3eevk-emmc.dtb
+diff --git a/arch/arm64/boot/dts/aries/msrzg3e.dtsi b/arch/arm64/boot/dts/aries/msrzg3e.dtsi
+new file mode 100644
+index 000000000000..290c75590f65
+--- /dev/null
++++ b/arch/arm64/boot/dts/aries/msrzg3e.dtsi
+@@ -0,0 +1,317 @@
++// SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
++/*
++ * Device Tree Source for the ARIES embedded MSRZG3SE module.
++ *
++ * Copyright (C) 2025 ARIES embedded GmbH
++ */
++
++#include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/pinctrl/rzv2h-pinctrl.h>
++#include <dt-bindings/interrupt-controller/irqc-rzg2l.h>
++
++/ {
++	compatible = "aries,msrzg3e", "renesas,r9a09g047e57", "renesas,r9a09g047";
++
++	aliases {
++		mmc0 = &sdhi0;
++		ethernet0 = &eth0;
++#ifdef ENABLE_ETH1
++		ethernet1 = &eth1;
++#endif
++	};
++
++	chosen {
++		bootargs = "ignore_loglevel";
++		stdout-path = "serial0:115200n8";
++	};
++
++	memory@48000000 {
++		device_type = "memory";
++		/* first 128MB is reserved for secure area. */
++		reg = <0x0 0x48000000 0x0 0x78000000>;
++	};
++
++	reserved-memory {
++		#address-cells = <2>;
++		#size-cells = <2>;
++		ranges;
++
++		global_cma: linux,cma@58000000 {
++			compatible = "shared-dma-pool";
++			linux,cma-default;
++			reusable;
++			reg = <0x0 0x58000000 0x0 0x10000000>;
++		};
++
++		mmp_reserved: linux,multimedia {
++			compatible = "shared-dma-pool";
++			reusable;
++			reg = <0x0 0x68000000 0x0 0x10000000>;
++		};
++	};
++
++	mmngr {
++		compatible = "renesas,mmngr";
++		memory-region = <&mmp_reserved>;
++	};
++
++	mmngrbuf {
++		compatible = "renesas,mmngrbuf";
++	};
++
++	vspm_if {
++		compatible = "renesas,vspm_if";
++	};
++
++	reg_1p8v: regulator0 {
++		compatible = "regulator-fixed";
++
++		regulator-name = "fixed-1.8V";
++		regulator-min-microvolt = <1800000>;
++		regulator-max-microvolt = <1800000>;
++		regulator-boot-on;
++		regulator-always-on;
++	};
++
++	reg_3p3v: regulator1 {
++		compatible = "regulator-fixed";
++
++		regulator-name = "fixed-3.3V";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		regulator-boot-on;
++		regulator-always-on;
++	};
++
++	x2: x2-clock {
++		compatible = "fixed-clock";
++		#clock-cells = <0>;
++		clock-frequency = <24000000>;
++	};
++
++	osc1: cec-clock {
++		compatible = "fixed-clock";
++		#clock-cells = <0>;
++		clock-frequency = <12000000>;
++	};
++};
++
++&pinctrl {
++	 /* I2C_CAM */
++	 i2c0_pins: i2c0 {
++		pinmux = <RZV2H_PORT_PINMUX(D, 4, 4)>, /* SCL */
++			 <RZV2H_PORT_PINMUX(D, 5, 4)>; /* SDA */
++	};
++
++	/* I2C_A */
++	i2c1_pins: i2c1 {
++		pinmux = <RZV2H_PORT_PINMUX(3, 2, 1)>, /* SCL */
++			 <RZV2H_PORT_PINMUX(3, 3, 1)>; /* SDA */
++	};
++
++	/* I2C_PM */
++	i2c8_pins: i2c8 {
++		pinmux = <RZV2H_PORT_PINMUX(3, 6, 4)>, /* SCL */
++			 <RZV2H_PORT_PINMUX(3, 7, 4)>; /* SDA */
++	};
++
++	eth0_pins: eth0 {
++		pinmux = <RZV2H_PORT_PINMUX(A, 1, 1)>, /* MDC */
++			 <RZV2H_PORT_PINMUX(A, 0, 1)>, /* MDIO */
++			 <RZV2H_PORT_PINMUX(C, 1, 1)>, /* RXD3 */
++			 <RZV2H_PORT_PINMUX(C, 0, 1)>, /* RXD2 */
++			 <RZV2H_PORT_PINMUX(B, 7, 1)>, /* RXD1 */
++			 <RZV2H_PORT_PINMUX(B, 6, 1)>, /* RXD0 */
++			 <RZV2H_PORT_PINMUX(B, 0, 1)>, /* RXC */
++			 <RZV2H_PORT_PINMUX(A, 2, 1)>, /* RX_CTL */
++			 <RZV2H_PORT_PINMUX(B, 5, 1)>, /* TXD3 */
++			 <RZV2H_PORT_PINMUX(B, 4, 1)>, /* TXD2 */
++			 <RZV2H_PORT_PINMUX(B, 3, 1)>, /* TXD1 */
++			 <RZV2H_PORT_PINMUX(B, 2, 1)>, /* TXD0 */
++			 <RZV2H_PORT_PINMUX(B, 1, 1)>, /* TXC */
++			 <RZV2H_PORT_PINMUX(A, 3, 1)>; /* TX_CTL */
++	};
++
++#ifdef ENABLE_ETH1
++	eth1_pins: eth1 {
++		pinmux = <RZV2H_PORT_PINMUX(D, 1, 1)>, /* MDC */
++			 <RZV2H_PORT_PINMUX(D, 0, 1)>, /* MDIO */
++			 <RZV2H_PORT_PINMUX(F, 1, 1)>, /* RXD3 */
++			 <RZV2H_PORT_PINMUX(F, 0, 1)>, /* RXD2 */
++			 <RZV2H_PORT_PINMUX(E, 7, 1)>, /* RXD1 */
++			 <RZV2H_PORT_PINMUX(E, 6, 1)>, /* RXD0 */
++			 <RZV2H_PORT_PINMUX(E, 0, 1)>, /* RXC */
++			 <RZV2H_PORT_PINMUX(D, 2, 1)>, /* RX_CTL */
++			 <RZV2H_PORT_PINMUX(E, 5, 1)>, /* TXD3 */
++			 <RZV2H_PORT_PINMUX(E, 4, 1)>, /* TXD2 */
++			 <RZV2H_PORT_PINMUX(E, 3, 1)>, /* TXD1 */
++			 <RZV2H_PORT_PINMUX(E, 2, 1)>, /* TXD0 */
++			 <RZV2H_PORT_PINMUX(E, 1, 1)>, /* TXC */
++			 <RZV2H_PORT_PINMUX(D, 3, 1)>; /* TX_CTL */
++	};
++#endif
++
++
++	xspi_pins: xspi0 {
++		pinmux = <RZV2H_PORT_PINMUX(M, 0, 0)>, /* XSPI0_IO0 */
++			 <RZV2H_PORT_PINMUX(M, 1, 0)>, /* XSPI0_IO1 */
++			 <RZV2H_PORT_PINMUX(M, 2, 0)>, /* XSPI0_IO2 */
++			 <RZV2H_PORT_PINMUX(M, 3, 0)>, /* XSPI0_IO3 */
++			 <RZV2H_PORT_PINMUX(L, 0, 0)>, /* XSPI0_CKP */
++			 <RZV2H_PORT_PINMUX(L, 1, 0)>; /* XSPI0_CS0 */
++	};
++};
++
++&qextal_clk {
++	clock-frequency = <24000000>;
++};
++
++&du {
++	status = "okay";
++};
++
++&i2c8 {
++	pinctrl-0 = <&i2c8_pins>;
++	pinctrl-names = "default";
++	status = "okay";
++
++	versa3: clock-generator@68 {
++		compatible = "renesas,5p35023";
++		reg = <0x68>;
++		#clock-cells = <1>;
++		clocks = <&x2>;
++
++		assigned-clocks = <&versa3 0>, <&versa3 1>,
++				  <&versa3 2>, <&versa3 3>,
++				  <&versa3 4>, <&versa3 5>;
++		assigned-clock-rates = <24000000>, <12288000>,
++				       <11289600>, <12288000>,
++				       <25000000>, <25000000>;
++	};
++};
++
++&eth0 {
++	phy-handle = <&phy0>;
++	phy-mode = "rgmii-id";
++
++	pinctrl-0 = <&eth0_pins>;
++	pinctrl-names = "default";
++	status = "okay";
++
++	mdio {
++		#address-cells = <1>;
++		#size-cells = <0>;
++		phy0: ethernet-phy@7 {
++			compatible = "ethernet-phy-id0022.1640",
++					"ethernet-phy-ieee802.3-c22";
++			reg = <7>;
++			rxc-skew-psec = <1400>;
++			txc-skew-psec = <1400>;
++			rxdv-skew-psec = <0>;
++			txdv-skew-psec = <0>;
++			rxd0-skew-psec = <0>;
++			rxd1-skew-psec = <0>;
++			rxd2-skew-psec = <0>;
++			rxd3-skew-psec = <0>;
++			txd0-skew-psec = <0>;
++			txd1-skew-psec = <0>;
++			txd2-skew-psec = <0>;
++			txd3-skew-psec = <0>;
++		};
++	};
++};
++
++#ifdef ENABLE_ETH1
++&eth1 {
++	phy-handle = <&phy1>;
++	phy-mode = "rgmii-id";
++
++	pinctrl-0 = <&eth1_pins>;
++	pinctrl-names = "default";
++	status = "okay";
++
++	mdio {
++		#address-cells = <1>;
++		#size-cells = <0>;
++		phy1: ethernet-phy@7 {
++			compatible = "ethernet-phy-id0022.1640",
++					"ethernet-phy-ieee802.3-c22";
++			reg = <7>;
++			rxc-skew-psec = <1400>;
++			txc-skew-psec = <1400>;
++			rxdv-skew-psec = <0>;
++			txdv-skew-psec = <0>;
++			rxd0-skew-psec = <0>;
++			rxd1-skew-psec = <0>;
++			rxd2-skew-psec = <0>;
++			rxd3-skew-psec = <0>;
++			txd0-skew-psec = <0>;
++			txd1-skew-psec = <0>;
++			txd2-skew-psec = <0>;
++			txd3-skew-psec = <0>;
++		};
++	};
++};
++#endif
++
++&adc {
++       status = "okay";
++};
++
++&ostm0 {
++	status = "okay";
++};
++
++&ostm1 {
++	status = "okay";
++};
++
++&xspi {
++	pinctrl-0 = <&xspi_pins>;
++	pinctrl-names = "default";
++	status = "okay";
++
++	flash@0 {
++		compatible = "atmel,at25ql128a", "jedec,spi-nor";
++		reg = <0>;
++		m25p,fast-read;
++		spi-max-frequency = <50000000>;
++		spi-tx-bus-width = <1>;
++		spi-rx-bus-width = <1>;
++
++		partitions {
++			compatible = "fixed-partitions";
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			partition@0 {
++				label = "bl2";
++				reg = <0x00000000 0x00040000>;
++				read-only;
++			};
++
++			partition@60000 {
++				label = "fip";
++				reg = <0x00060000 0x00FA0000>;
++				read-only;
++			};
++		};
++	};
++};
++
++&wdt1 {
++	status = "okay";
++};
++
++&rtc {
++	status = "okay";
++};
++
++&cmtw0 {
++	status = "okay";
++};
++
++&cmtw1 {
++	status = "okay";
++};
++
+diff --git a/arch/arm64/boot/dts/aries/msrzg3eevk-emmc.dts b/arch/arm64/boot/dts/aries/msrzg3eevk-emmc.dts
+new file mode 100644
+index 000000000000..db4988fe34a2
+--- /dev/null
++++ b/arch/arm64/boot/dts/aries/msrzg3eevk-emmc.dts
+@@ -0,0 +1,57 @@
++// SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
++/*
++ * Device Tree Source for the ARIES embedded MSRZG3SE Evaluation Kit.
++ *
++ * Copyright (C) 2025 ARIES embedded GmbH
++ */
++
++/dts-v1/;
++#include "msrzg3eevk.dtsi"
++
++/* SD0 is connected to the eMMC om the OSM module */
++
++/ {
++	model = "ARIES embedded MSRZG3E on EVK with eMMC support";
++	compatible = "aries,msrzg3eevk", "renesas,r9a09g047e57", "renesas,r9a09g047";
++};
++
++/* eMMC */
++&sdhi0 {
++	pinctrl-0 = <&sdhi0_pins>;
++	pinctrl-1 = <&sdhi0_pins>;
++	pinctrl-names = "default", "state_uhs";
++
++	vmmc-supply = <&reg_1p8v>;
++	vqmmc-supply = <&vqmmc_sdhi0>;
++
++	bus-width = <8>;
++	//mmc-hs200-1_8v;
++	non-removable;
++	//fixed-emmc-driver-type = <1>;
++	status = "okay";
++};
++
++&pinctrl {
++	sdhi0_pins: sd0emmc {
++		sd0-emmc-ctrl {
++			pins = "SD0_CLK", "SD0_CMD";
++			renesas,output-impedance = <3>;
++		};
++
++		sd0-iovs {
++			pins = "QSD0_IOVS";
++			renesas,output-impedance = <3>;
++		};
++
++		sd0-emmc-data {
++			pins = "QSD0_DAT0", "QSD0_DAT1", "QSD0_DAT2", "QSD0_DAT3",
++			       "QSD0_DAT4", "QSD0_DAT5", "QSD0_DAT6", "QSD0_DAT7";
++			renesas,output-impedance = <3>;
++		};
++
++		sd0-emmc-rst {
++			pins = "SD0_RSTN";
++			renesas,output-impedance = <3>;
++		};
++	};
++};
+\ No newline at end of file
+diff --git a/arch/arm64/boot/dts/aries/msrzg3eevk-sd.dts b/arch/arm64/boot/dts/aries/msrzg3eevk-sd.dts
+new file mode 100644
+index 000000000000..44df741d3e57
+--- /dev/null
++++ b/arch/arm64/boot/dts/aries/msrzg3eevk-sd.dts
+@@ -0,0 +1,47 @@
++// SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
++/*
++ * Device Tree Source for the ARIES embedded MSRZG3SE Evaluation Kit.
++ *
++ * Copyright (C) 2025 ARIES embedded GmbH
++ */
++
++/dts-v1/;
++#include "msrzg3eevk.dtsi"
++
++/* SD0 is connected to the micro SD0 card on the EVK */
++
++/ {
++	model = "ARIES embedded MSRZG3E on EVK with SD support";
++	compatible = "aries,msrzg3eevk", "renesas,r9a09g047e57", "renesas,r9a09g047";
++};
++
++/* micro SD card */
++&sdhi0 {
++	pinctrl-0 = <&sdhi0_pins>;
++	pinctrl-1 = <&sdhi0_pins>;
++	pinctrl-names = "default", "state_uhs";
++
++	vmmc-supply = <&reg_3p3v>;
++	vqmmc-supply = <&vqmmc_sdhi0>;
++
++	bus-width = <4>;
++	sd-uhs-sdr50;
++	//sd-uhs-sdr104;
++
++	status = "okay";
++};
++
++&pinctrl {
++	 /* Support pinctrl for SD function of SDHI0 */
++	sdhi0_pins: sd0 {
++		sd0_mux {
++			pinmux = <RZV2H_PORT_PINMUX(1, 0, 8)>; /* SD0_CD */
++			//pinmux = <RZV2H_PORT_PINMUX(1, 1, 8)>; /* SD0_WP */
++		};
++
++		sd0-iovs {
++			pins = "QSD0_IOVS";
++			renesas,output-impedance = <3>;
++		};
++	};
++};
+\ No newline at end of file
+diff --git a/arch/arm64/boot/dts/aries/msrzg3eevk.dtsi b/arch/arm64/boot/dts/aries/msrzg3eevk.dtsi
+new file mode 100644
+index 000000000000..7b00d033714b
+--- /dev/null
++++ b/arch/arm64/boot/dts/aries/msrzg3eevk.dtsi
+@@ -0,0 +1,389 @@
++// SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
++/*
++ * Device Tree Source for the ARIES embedded MSRZG3SE Evaluation Kit.
++ *
++ * Copyright (C) 2025 ARIES embedded GmbH
++ */
++
++#include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/pinctrl/rzv2h-pinctrl.h>
++#include <dt-bindings/interrupt-controller/irqc-rzg2l.h>
++//#include <dt-bindings/soc/renesas,rsci.h>
++
++#include "../renesas/r9a09g047.dtsi"
++#include "msrzg3e.dtsi"
++
++/*
++ * Please uncomment the corresponding selection to below macros:
++ */
++/* #define ENABLE_PCIE */
++/* #define SELECT_PCIE_ENDPOINT */
++#define ENABLE_RGB_PANEL
++/* #define ENABLE_RGB_BACKLIGHT */
++/* #define ENABLE_CSI_CAMERA */
++/* #define ENABLE_USB3 */
++/* #define ENABLE_ETH1 */
++
++/ {
++	model = "ARIES embedded MSRZG3E on EVK based on r9a09g047e57";
++	compatible = "", "aries,msrzg3eevk", "renesas,r9a09g047e57", "renesas,r9a09g047";
++
++	aliases {
++		serial0 = &scif;
++		serial1 = &sci4;
++		serial2 = &sci7;
++	};
++
++#ifdef ENABLE_RGB_PANEL
++#ifdef ENABLE_RGB_BACKLIGHT
++	backlight: backlight {
++		compatible = "pwm-backlight";
++		pinctrl-0 = <&backlight_pins>;
++		pinctrl-names = "default";
++		pwms = <&gpt1_5 0 50000>;
++		brightness-levels = <0 2 8 16 32 64 128 255>;
++		default-brightness-level = <6>;
++	};
++#endif
++
++	panel {
++ 		compatible = "ampire,am800480r2";
++		status = "okay";
++#ifdef ENABLE_RGB_BACKLIGHT
++		backlight = <&backlight>;
++#endif
++
++		port {
++			panel_in_rgb: endpoint {
++				remote-endpoint = <&du_out_rgb>;
++			};
++		};
++	};
++#endif
++};
++
++&i2c1 {
++	pinctrl-0 = <&i2c1_pins>;
++	pinctrl-names = "default";
++	status = "okay";
++
++#ifdef ENABLE_RGB_PANEL
++	touch: ft5426@38 {
++	       	compatible = "edt,edt-ft5506";
++		reg = <0x38>;
++		pinctrl-0 = <&touch_pins>;
++		pinctrl-names = "default";
++		/* Use Pin 20 on J5 (GPIO_A2), requires patch wire */
++		interrupt-parent = <&icu>;
++		interrupts = <RZG2L_IRQ1 IRQ_TYPE_EDGE_FALLING>; /* IRQ1 */
++		touchscreen-size-x = <800>;
++		touchscreen-size-y = <480>;
++		status = "okay";
++	};
++#endif
++
++#ifdef ENABLE_CSI_CAMERA
++	imx219: camera@10 {
++		compatible = "sony,imx219";
++		reg = <0x10>;
++		clock-names = "xclk";
++		clocks = <&clk_ext_camera>;
++		clock-frequency = <24000000>;
++		VANA-supply = <&imx219_vana_2v8>;
++		VDIG-supply = <&imx219_vdig_1v8>;
++		VDDL-supply = <&imx219_vddl_1v2>;
++
++		port {
++			imx219_to_csi: endpoint {
++				clock-lanes = <0>;
++				data-lanes = <1 2>;
++				link-frequencies = /bits/ 64 <456000000>;
++				remote-endpoint = <&csi2_in>;
++			};
++		};
++	};
++#endif
++};
++
++&cru {
++	status = "okay";
++};
++
++#ifdef ENABLE_CSI_CAMERA
++&csi2 {
++	status = "okay";
++
++	ports {
++		port@0 {
++			csi2_in: endpoint {
++				clock-lanes = <0>;
++				data-lanes = <1 2>;
++				remote-endpoint = <&imx219_to_csi>;
++			};
++		};
++	};
++};
++#endif
++
++#ifdef ENABLE_RGB_PANEL
++#ifdef ENABLE_RGB_BACKLIGHT
++&gpt1_5 {
++	status = "okay";
++};
++#endif
++#endif
++
++&canfd {
++	pinctrl-0 = <&canfd_pins>;
++	pinctrl-names = "default";
++	status = "okay";
++
++	channel1 {
++		status = "okay";
++	};
++
++	channel4 {
++		status = "okay";
++	};
++};
++
++&ehci0 {
++	memory-region = <&global_cma>;
++	dr_mode = "host";
++	status = "okay";
++};
++
++&ehci1 {
++	memory-region = <&global_cma>;
++	status = "okay";
++};
++
++&hsusb {
++	dr_mode = "host";
++	status = "okay";
++};
++
++&ohci0 {
++	memory-region = <&global_cma>;
++	dr_mode = "host";
++	status = "okay";
++};
++
++&ohci1 {
++	memory-region = <&global_cma>;
++	status = "okay";
++};
++
++#ifdef ENABLE_PCIE
++#ifdef SELECT_PCIE_ENDPOINT
++&pcie0_ep {
++	status = "okay";
++	pinctrl-0 = <&pcie0_pins>;
++	pinctrl-names = "default";
++};
++#else
++&pcie0 {
++	status = "okay";
++	pinctrl-0 = <&pcie0_pins>;
++	pinctrl-names = "default";
++};
++#endif
++#endif
++
++&pinctrl {
++	 canfd_pins: canfd {
++		can1_pins: can1 {
++			pinmux = <RZV2H_PORT_PINMUX(L, 2, 3)>, /* RX */
++				 <RZV2H_PORT_PINMUX(L, 3, 3)>; /* TX */
++		};
++
++		can4_pins: can4 {
++			pinmux = <RZV2H_PORT_PINMUX(H, 2, 3)>, /* RX */
++				 <RZV2H_PORT_PINMUX(H, 3, 3)>; /* TX */
++		};
++	};
++
++#ifdef ENABLE_RGB_PANEL
++	du_pins: du {
++		clk {
++			pinmux = <RZV2H_PORT_PINMUX(5, 0, 1)>; /* LCD_CLK */
++			renesas,output-impedance = <3>;
++		};
++
++		sync {
++			pinmux = <RZV2H_PORT_PINMUX(5, 1, 1)>, /* LCD_HSYNC */
++				 <RZV2H_PORT_PINMUX(5, 2, 1)>; /* LCD_VSYNC */
++		};
++
++		de {
++			pinmux = <RZV2H_PORT_PINMUX(5, 3, 1)>; /* LCD_DE */
++		};
++
++		data {
++			pinmux = <RZV2H_PORT_PINMUX(5, 4, 1)>, /* LCD_G7 */
++				 <RZV2H_PORT_PINMUX(5, 5, 1)>, /* LCD_B7 */
++				 <RZV2H_PORT_PINMUX(5, 6, 1)>, /* LCD_R7 */
++				 <RZV2H_PORT_PINMUX(6, 0, 1)>, /* LCD_G6 */
++				 <RZV2H_PORT_PINMUX(6, 1, 1)>, /* LCD_B6 */
++				 <RZV2H_PORT_PINMUX(6, 2, 1)>, /* LCD_R6 */
++				 <RZV2H_PORT_PINMUX(6, 3, 1)>, /* LCD_G5 */
++				 <RZV2H_PORT_PINMUX(6, 4, 1)>, /* LCD_B5 */
++				 <RZV2H_PORT_PINMUX(6, 5, 1)>, /* LCD_R5 */
++				 <RZV2H_PORT_PINMUX(6, 6, 1)>, /* LCD_G4 */
++				 <RZV2H_PORT_PINMUX(7, 0, 1)>, /* LCD_B4 */
++				 <RZV2H_PORT_PINMUX(7, 1, 1)>, /* LCD_R4 */
++				 <RZV2H_PORT_PINMUX(7, 2, 1)>, /* LCD_G3 */
++				 <RZV2H_PORT_PINMUX(7, 3, 1)>, /* LCD_B3 */
++				 <RZV2H_PORT_PINMUX(7, 4, 1)>, /* LCD_R3 */
++				 <RZV2H_PORT_PINMUX(7, 5, 1)>, /* LCD_G2 */
++				 <RZV2H_PORT_PINMUX(7, 6, 1)>, /* LCD_B2 */
++				 <RZV2H_PORT_PINMUX(7, 7, 1)>; /* LCD_R2 */
++		};
++	};
++#endif
++
++	i2c0_pins: i2c0 {
++			pinmux = <RZV2H_PORT_PINMUX(D, 4, 4)>, /* SCL */
++				 <RZV2H_PORT_PINMUX(D, 5, 4)>; /* SDA */
++	};
++
++#ifdef ENABLE_PCIE
++	pcie0_pins: pcie0 {
++		pinmux = <RZV2H_PORT_PINMUX(G, 7, 1)>; /* PCIE_SLOT_RST */
++	};
++#endif
++
++	sci4_pins: sci4 {
++		pinmux = <RZV2H_PORT_PINMUX(G, 0, 5)>, /* SCI4_TXD_MOSI_SDA */
++			 <RZV2H_PORT_PINMUX(G, 1, 5)>, /* SCI4_RXD_MISO_SCL */
++			 <RZV2H_PORT_PINMUX(G, 2, 6)>, /* SCI4_CTS */
++			 <RZV2H_PORT_PINMUX(G, 3, 5)>; /* SCI4_CTS_RTS */
++		bias-pull-up;
++	};
++
++	sci7_pins: sci7 {
++		pinmux = <RZV2H_PORT_PINMUX(3, 4, 5)>, /* SCI7_TXD_MOSI_SDA */
++			 <RZV2H_PORT_PINMUX(3, 5, 5)>; /* SCI7_RXD_MISO_SCL */
++		bias-pull-up;
++	};
++
++	spi0_pins: spi0 {
++		pinmux = <RZV2H_PORT_PINMUX(M, 4, 2)>, /* MISOA */
++			 <RZV2H_PORT_PINMUX(M, 5, 2)>, /* MOSIA */
++			 <RZV2H_PORT_PINMUX(M, 6, 2)>, /* RSPCKA */
++			 <RZV2H_PORT_PINMUX(M, 7, 2)>; /* SSLA0 */
++	};
++
++#ifdef ENABLE_RGB_PANEL
++#ifdef ENABLE_RGB_BACKLIGHT
++       backlight_pins: backlight {
++		pinmux = <RZV2H_PORT_PINMUX(L, 7, 11)>; /* GPT1_5 */
++	};
++#endif
++
++       touch_pins: touch {
++		pinmux = <RZV2H_PORT_PINMUX(H, 0, 15)>; /* IRQ1 */
++	};
++#endif
++
++	usb20_pins: usb20 {
++		pinmux = <RZV2H_PORT_PINMUX(3, 1, 12)>, /* VBUS */
++			 <RZV2H_PORT_PINMUX(3, 0, 12)>; /* OVC */
++	};
++
++	usb21_pins: usb21 {
++		pinmux = <RZV2H_PORT_PINMUX(2, 1, 13)>, /* VBUS */
++			 <RZV2H_PORT_PINMUX(2, 0, 13)>; /* OVC */
++	};
++
++#ifdef ENABLE_USB3
++	usb3_pins: usb3 {
++		pinmux = <RZV2H_PORT_PINMUX(4, 1, 12)>, /* VBUS */
++			 <RZV2H_PORT_PINMUX(4, 0, 12)>; /* OVR */
++	};
++#endif
++};
++
++&scif {
++	status = "okay";
++};
++
++&sci4 {
++	pinctrl-0 = <&sci4_pins>;
++	pinctrl-names = "default";
++	status = "okay";
++};
++
++
++&sci7 {
++	pinctrl-0 = <&sci7_pins>;
++	pinctrl-names = "default";
++	status = "okay";
++};
++
++&scif {
++	status = "okay";
++};
++
++&spi0 {
++	pinctrl-0 = <&spi0_pins>;
++	pinctrl-names = "default";
++
++	status = "okay";
++};
++
++&usb2_phy0 {
++	pinctrl-0 = <&usb20_pins>;
++	pinctrl-names = "default";
++
++	status = "okay";
++};
++
++&usb2_phy1 {
++	pinctrl-0 = <&usb21_pins>;
++	pinctrl-names = "default";
++
++	status = "okay";
++};
++
++&usb20phyrst {
++	status = "okay";
++};
++
++&usb21phyrst {
++	status = "okay";
++};
++
++#ifdef ENABLE_USB3
++&xhci {
++	pinctrl-0 = <&usb3_pins>;
++	pinctrl-names = "default";
++
++	memory-region = <&global_cma>;
++	status = "okay";
++};
++
++&usb3_phy {
++	status = "okay";
++};
++#endif
++
++#ifdef ENABLE_RGB_PANEL
++&gpu {
++	status = "okay";
++};
++
++&du {
++	pinctrl-0 = <&du_pins>;
++	pinctrl-names = "default";
++	status = "okay";
++
++	ports {
++		port@1 {
++			du_out_rgb: endpoint {
++				remote-endpoint = <&panel_in_rgb>;
++			};
++		};
++	};
++};
++#endif
+-- 
+2.34.1
+
