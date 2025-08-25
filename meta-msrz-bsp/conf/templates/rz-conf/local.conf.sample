@@ -305,3 +305,7 @@ CONF_VERSION = "2"
 
 # Un-comment a following line to select RTLinux.
 # PREFERRED_PROVIDER_virtual/kernel = "linux-renesas-rt"
+
+# Delete the source/object/binary files once a package is built to
+# preserve a lot of disk space
+# INHERIT += "rm_work"
