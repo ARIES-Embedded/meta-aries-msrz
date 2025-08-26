@@ -1,9 +1,9 @@
 # meta-aries-msrz
 
-This is a Yocto build layer(version:scarthgap) that provides support for
-MSRZ modules and carrier boards from [ARIES Embedded][], which are based
+This is a Yocto build layer, version Scarthgap, that provides support for
+MSRZ modules and Evaluation Kits from [ARIES Embedded][], which are based
 on the RZ/G2 Group of 64bit Arm-based MPUs from Renesas Electronics.
-Currently the following modules, boards and MPUs are supported:
+Currently the following modules and Evaluation Kits are supported:
 
   | Module        | Board/EVK              | Renesas MPU          |
   | ------------- | ---------------------- | -------------------- |
@@ -59,7 +59,7 @@ Below git configuration is required:
 To download proprietary Multimedia and Graphics library and related Linux
 drivers, please follow the [meta-renesas build instructions][].
 Graphic drivers are required for Wayland. Multimedia drivers are optional.
-After downloading the proprietary package, please decompress them then put meta-rz-features folder at `$WORK` directory,
+After downloading the proprietary package, please decompress them. Then put `meta-rz-features` folder at `$WORK` directory,
 alongside `poky`, `meta-arm`, etc. (e.g., `$WORK/meta-rz-features`).
 
 You can download the public Yocto Project source layers to prepare the build environment as shown below. Ensure you checkout the specific revisions listed in the "Dependencies" section.
