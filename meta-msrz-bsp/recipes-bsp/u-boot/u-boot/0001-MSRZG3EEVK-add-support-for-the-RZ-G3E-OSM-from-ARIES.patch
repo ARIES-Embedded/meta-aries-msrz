@@ -1,7 +1,7 @@
-From 11bba97cdb766b44eb8db280812c951f1849df2b Mon Sep 17 00:00:00 2001
+From 9b7eace078d75fca095ba7ca64d638fc10e6bb3d Mon Sep 17 00:00:00 2001
 From: Wolfgang Grandegger <wg@aries-embedded.de>
 Date: Mon, 14 Jul 2025 14:32:50 +0200
-Subject: [PATCH 1/2] MSRZG3EEVK: add support for the RZ/G3E OSM from ARIES
+Subject: [PATCH] MSRZG3EEVK: add support for the RZ/G3E OSM from ARIES
  embedded
 
 The MSRZG3E module on the Evaluation Kit (MSRZG3EEVK) is supported.
@@ -14,8 +14,8 @@ Signed-off-by: Wolfgang Grandegger <wg@aries-embedded.de>
  board/aries/msrzg3eevk/Makefile     |  13 ++
  board/aries/msrzg3eevk/msrzg3eevk.c | 189 +++++++++++++++++++
  configs/msrzg3eevk_defconfig        |  94 ++++++++++
- include/configs/msrzg3eevk.h        |  64 +++++++
- 7 files changed, 657 insertions(+)
+ include/configs/msrzg3eevk.h        |  66 +++++++
+ 7 files changed, 659 insertions(+)
  create mode 100644 arch/arm/dts/msrzg3eevk.dts
  create mode 100644 board/aries/msrzg3eevk/Kconfig
  create mode 100644 board/aries/msrzg3eevk/Makefile
@@ -25,7 +25,7 @@ Signed-off-by: Wolfgang Grandegger <wg@aries-embedded.de>
 
 diff --git a/arch/arm/dts/msrzg3eevk.dts b/arch/arm/dts/msrzg3eevk.dts
 new file mode 100644
-index 0000000000..8d0520ac0d
+index 0000000000..29bc6504e9
 --- /dev/null
 +++ b/arch/arm/dts/msrzg3eevk.dts
 @@ -0,0 +1,276 @@
@@ -75,7 +75,7 @@ index 0000000000..8d0520ac0d
 +			compatible = "shared-dma-pool";
 +			linux,cma-default;
 +			reusable;
-+			reg = <0x0 0x58000000 0x0 0x10000000>;
++			reg = <0x0 0x58000000 0x0 0x8000000>;
 +		};
 +	};
 +
@@ -566,7 +566,7 @@ index 0000000000..18a9d14a76
 +}
 diff --git a/configs/msrzg3eevk_defconfig b/configs/msrzg3eevk_defconfig
 new file mode 100644
-index 0000000000..450a84adbf
+index 0000000000..0e33d603a5
 --- /dev/null
 +++ b/configs/msrzg3eevk_defconfig
 @@ -0,0 +1,94 @@
@@ -576,7 +576,7 @@ index 0000000000..450a84adbf
 +CONFIG_TEXT_BASE=0x50000000
 +CONFIG_ENV_SIZE=0x20000
 +CONFIG_ENV_OFFSET=0xFFFE0000
-+CONFIG_SYS_LOAD_ADDR=0x58000000
++CONFIG_SYS_LOAD_ADDR=0x60000000
 +CONFIG_DM_GPIO=y
 +CONFIG_RCAR_GEN3=y
 +CONFIG_R9A09G047=y
@@ -666,10 +666,10 @@ index 0000000000..450a84adbf
 +CONFIG_BOARD_LATE_INIT=y
 diff --git a/include/configs/msrzg3eevk.h b/include/configs/msrzg3eevk.h
 new file mode 100644
-index 0000000000..0cb4a77817
+index 0000000000..7b17180ffc
 --- /dev/null
 +++ b/include/configs/msrzg3eevk.h
-@@ -0,0 +1,64 @@
+@@ -0,0 +1,66 @@
 +/* SPDX-License-Identifier: GPL-2.0+ */
 +/*
 + * Copyright (C) 2022 Renesas Electronics Corporation
@@ -722,12 +722,14 @@ index 0000000000..0cb4a77817
 +#define CFG_EXTRA_ENV_SETTINGS \
 +	"usb_pgood_delay=2000\0" \
 +	"bootm_size=0x10000000 \0" \
-+	"mmcbootargs=setenv bootargs rw rootwait earlycon root=/dev/mmcblk0p2 \0" \
-+	"bootimage=booti 0x48080000 - 0x48000000 \0" \
-+	"bootfile=boot/Image\0" \
++	"fdt_addr= 0x48000000\0" \
 +	"fdt_file=boot/msrzg3eevk-sd.dtb\0" \
-+	"mmcload=ext4load mmc 0:2 0x48080000 ${bootfile};ext4load mmc 0:2 0x48000000 ${fdt_file};run mmcbootargs \0"
-+#define CONFIG_BOOTCOMMAND      "env default -a;run mmcload bootimage"
++	"kernel_file=boot/Image\0" \
++	"kernel_addr=0x48080000\0" \
++	"mmcbootargs=setenv bootargs rw rootwait earlycon root=/dev/mmcblk0p2 \0" \
++	"bootkernel=booti ${kernel_addr} - ${fdt_addr}\0" \
++	"mmcload=ext4load mmc 0:2 ${kernel_addr} ${kernel_file};ext4load mmc 0:2 ${fdt_addr} ${fdt_file};run mmcbootargs\0"
++#define CONFIG_BOOTCOMMAND      "env default -a;run mmcload bootkernel"
 +
 +/* For board */
 +/* Ethernet RAVB */
