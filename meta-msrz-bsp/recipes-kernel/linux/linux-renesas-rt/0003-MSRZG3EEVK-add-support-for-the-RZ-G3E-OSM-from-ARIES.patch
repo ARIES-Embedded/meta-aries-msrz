@@ -1,4 +1,4 @@
-From 1aa1bee97be6f96844e19c3ba42d5fab98f3c44e Mon Sep 17 00:00:00 2001
+From c1ef97b85df6befa51a60ff55c86a5cfae0e2086 Mon Sep 17 00:00:00 2001
 From: Wolfgang Grandegger <wg@aries-embedded.de>
 Date: Wed, 6 Aug 2025 19:55:51 +0200
 Subject: [PATCH 3/3] MSRZG3EEVK: add support for the RZ/G3E OSM from ARIES
@@ -43,7 +43,7 @@ index 000000000000..c360a8446277
 +dtb-$(CONFIG_ARCH_R9A09G047) += msrzg3eevk-emmc.dtb
 diff --git a/arch/arm64/boot/dts/aries/msrzg3e.dtsi b/arch/arm64/boot/dts/aries/msrzg3e.dtsi
 new file mode 100644
-index 000000000000..290c75590f65
+index 000000000000..138f28c2d830
 --- /dev/null
 +++ b/arch/arm64/boot/dts/aries/msrzg3e.dtsi
 @@ -0,0 +1,317 @@
@@ -89,13 +89,13 @@ index 000000000000..290c75590f65
 +			compatible = "shared-dma-pool";
 +			linux,cma-default;
 +			reusable;
-+			reg = <0x0 0x58000000 0x0 0x10000000>;
++			reg = <0x0 0x58000000 0x0 0x8000000>;
 +		};
 +
 +		mmp_reserved: linux,multimedia {
 +			compatible = "shared-dma-pool";
 +			reusable;
-+			reg = <0x0 0x68000000 0x0 0x10000000>;
++			reg = <0x0 0x60000000 0x0 0x8000000>;
 +		};
 +	};
 +
