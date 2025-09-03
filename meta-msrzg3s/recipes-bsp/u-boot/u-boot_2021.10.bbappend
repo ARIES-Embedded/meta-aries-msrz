@@ -1,7 +1,7 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
 BRANCH = "v2021.10/rz-msrzg3s-BSP-3.0.7"
-SRCREV = "706a9c8e128bddf873d88db2358c65df4e4dde3a"
+SRCREV = "10e1025b97395550c03b3a195a6a9c69b7dab592"
 
 SRC_URI += " \
 	${@bb.utils.contains('MSRZ_SECURE_DRAM_2MB', '1', 'file://0001-MSRZG3S-2MB-secure-DRAM-for-Trust-Zone-and-OP-TEE.patch', '',d)} \
