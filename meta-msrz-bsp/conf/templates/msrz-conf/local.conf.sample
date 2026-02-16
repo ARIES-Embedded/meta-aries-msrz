@@ -34,7 +34,6 @@
 #MACHINE ?= "genericarm64"
 #MACHINE ?= "genericx86"
 #MACHINE ?= "genericx86-64"
-MACHINE ?= "msrzg3eevk"
 #
 # This sets the default machine to be qemux86-64 if no other machine is selected:
 MACHINE ??= "qemux86-64"

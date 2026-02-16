@@ -8,6 +8,7 @@ Currently the following modules and Evaluation Kits are supported:
   | Module        | Board/EVK              | Renesas MPU          |
   | ------------- | ---------------------- | -------------------- |
   | [MSRZG3E][]   | [MSRZG3EEVK][]         | R9A09G047 (RZ/G3E)   |
+  | [MSRZV2H][]   |  MSRZV2Hberry          | R9A09G057H (RZ/V2H)  |
 
 ## Patches
 
@@ -19,29 +20,29 @@ This layer (for the Scarthgap release) depends on the following specific revisio
 **poky:**
 - URL: `https://git.yoctoproject.org/poky`
 - Branch: `scarthgap`
-- Revision: `dc4827b3660bc1a03a2bc3b0672615b50e9137ff`
-- (Tag: `scarthgap-5.0.8`)
+- Revision: `ae2d52758fc2fcb0ed996aa234430464ebf4b310`
+- (Tag: `scarthgap-5.0.11`)
 
 **meta-arm:**
 - URL: `https://git.yoctoproject.org/meta-arm`
 - Branch: `scarthgap`
-- Revision: `950a4afce46a359def2958bd9ae33fc08ff9bb0d`
-- (Tag: `yocto-5.0.1`)
+- Revision: `8e0f8af90fefb03f08cd2228cde7a89902a6b37c`
+- (Tag: `yocto-5.0.2`)
 
 **meta-openembedded:**
 - URL: `https://github.com/openembedded/meta-openembedded.git`
 - Branch: `scarthgap`
-- Revision: `67ad83dd7c2485dae0c90eac345007af6195b84d`
+- Revision: `c29a18fa39ede952f3f6108ec007c1906e2d9a0d`
 
 **meta-renesas:**
 - URL: `https://github.com/renesas-rz/meta-renesas.git`
 - Branch: `scarthgap/rz`
-- Revision: `RZG3E-BSP-1.0.0`
+- Revision: `BSP-4.0.1`
 
 **meta-virtualization (for Docker):**
 - URL: `https://git.yoctoproject.org/git/meta-virtualization`
 - Branch: `scarthgap`
-- Revision: `9287a355b338361e42027ce371444111a791d64f`
+- Revision: `02f72c96bf9acd0bd3ae0463f482bce8feabe749`
 
 ## Build Instructions
 
@@ -72,17 +73,17 @@ You can download the public Yocto Project source layers to prepare the build env
     $
     $ git clone https://git.yoctoproject.org/meta-arm
     $ cd meta-arm
-    $ git checkout 950a4afce46a359def2958bd9ae33fc08ff9bb0d
+    $ git checkout 8e0f8af90fefb03f08cd2228cde7a89902a6b37c
     $ cd ..
     $
     $ git clone https://github.com/openembedded/meta-openembedded.git
     $ cd meta-openembedded
-    $ git checkout 67ad83dd7c2485dae0c90eac345007af6195b84d
+    $ git checkout c29a18fa39ede952f3f6108ec007c1906e2d9a0d
     $ cd ..
     $
     $ git clone  https://github.com/renesas-rz/meta-renesas.git
     $ cd meta-renesas
-    $ git checkout RZG3E-BSP-1.0.0
+    $ git checkout BSP-4.0.1
     $ cd ..
     $
     $ git clone  https://git.yoctoproject.org/git/meta-virtualization
@@ -92,7 +93,7 @@ You can download the public Yocto Project source layers to prepare the build env
     $
     $ git clone https://github.com/ARIES-Embedded/meta-aries-msrz.git
     $ cd meta-aries-msrz
-    $ git checkout scarthgap/msrz
+    $ git checkout scarthgap/msrz-msrzv2h
     $ cd ..
     $
 ```
@@ -102,7 +103,7 @@ files then using `bitbake` to build the image. Or you can do the steps below:
 
 - Initialize a build using the `oe-init-build-env` script in Poky and point `TEMPLATECONF` to platform conf path. e.g.:
    ```bash
-   $ TEMPLATECONF=$PWD/meta-aries-msrz/meta-msrz-bsp/conf/templates/rz-conf/ source poky/oe-init-build-env build
+   $ TEMPLATECONF=$PWD/meta-aries-msrz/meta-msrz-bsp/conf/templates/msrz-conf/ source poky/oe-init-build-env build
    ```
 
 - To build optional features (Docker, Codec, or Graphics), you can use `bitbake-layers add-layer` from within the build directory:
@@ -133,6 +134,7 @@ Example: ```MACHINE=msrzg3eevk bitbake core-image-weston```
 | Renesas MPU |    Module     |      Board/EVK         |          MACHINE           |
 | ----------- | ------------- | ---------------------- | -------------------------- |
 |   RZ/G3E    |    MSRZG3E    |      MRZG3EEVK         |         msrzg3eevk         |
+|   RZ/V2H    |    MSRZV2H    |      MRZV2Hberry       |         msrzv2hberry       |
 
 After completing the images for the target machine will be available in the output
 directory `tmp/deploy/images/\<machine\>/`.
@@ -270,6 +272,7 @@ Just run the menu, re-configuration, push "Save & Exit" button, exit the menu an
 [ARIES embedded]: https://www.aries-embedded.com
 [MSRZG3E]: https://www.aries-embedded.com/system-on-module/cpu/rzg3e-renesas-cortexa55quadcore-msrzg3e-osm-ethernet-pcie-npu
 [MSRZG3EEVK]: https://www.aries-embedded.com/evaluation-kit/cpu/rzg3e-renesas-cortexa55quadcore-msrzg3e-osm-ethernet-pcie-npu
+[MSRZV2H]: https://www.aries-embedded.com/node/651
 [meta-renesas build instructions]: https://github.com/renesas-rz/meta-renesas?tab=readme-ov-file#build-instructions
 [KAS User's Guide]: https://kas.readthedocs.io/en/latest/userguide.html
  

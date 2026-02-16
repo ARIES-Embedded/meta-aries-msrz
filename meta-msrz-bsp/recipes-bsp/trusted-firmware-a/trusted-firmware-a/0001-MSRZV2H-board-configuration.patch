@@ -1,0 +1,561 @@
+From 88e4c87e84a5914fc339b8bbbc1807bcaea0f125 Mon Sep 17 00:00:00 2001
+From: Wolfgang Grandegger <wg@aries-embedded.de>
+Date: Mon, 2 Feb 2026 14:15:57 +0100
+Subject: [PATCH] MSRZV2H board configuration
+
+This module uses two LPDDR4 devices with different pin mappings.
+A patch has been provided by Renesas support for this special
+case.
+
+Signed-off-by: Wolfgang Grandegger <wg@aries-embedded.de>
+---
+ plat/renesas/rz/board/v2h_msrz/pwrc_board.c   |  59 ++++++
+ plat/renesas/rz/board/v2h_msrz/rz_board.mk    |  18 ++
+ plat/renesas/rz/soc/v2h/drivers/ddr/ddr.c     |  18 +-
+ .../v2h/drivers/ddr/ddr_param_def_lpddr4.c    | 180 +++++++++---------
+ .../drivers/ddr/ddr_param_def_lpddr4_ch1.c    |  55 ++++++
+ .../rz/soc/v2h/drivers/ddr/ddr_private.h      |   1 +
+ .../rz/soc/v2h/drivers/ddr/ddr_setup_lpddr4.c |  11 ++
+ 7 files changed, 248 insertions(+), 94 deletions(-)
+ create mode 100644 plat/renesas/rz/board/v2h_msrz/pwrc_board.c
+ create mode 100644 plat/renesas/rz/board/v2h_msrz/rz_board.mk
+ create mode 100644 plat/renesas/rz/soc/v2h/drivers/ddr/ddr_param_def_lpddr4_ch1.c
+
+diff --git a/plat/renesas/rz/board/v2h_msrz/pwrc_board.c b/plat/renesas/rz/board/v2h_msrz/pwrc_board.c
+new file mode 100644
+index 000000000..0cea6b4ec
+--- /dev/null
++++ b/plat/renesas/rz/board/v2h_msrz/pwrc_board.c
+@@ -0,0 +1,59 @@
++/*
++ * Copyright (c) 2023, Renesas Electronics Corporation. All rights reserved.
++ *
++ * SPDX-License-Identifier: BSD-3-Clause
++ */
++
++#include <stddef.h>
++#include <assert.h>
++#include <riic.h>
++
++#define PMIC	(0x12)
++
++bool pwrc_board_is_resume(void)
++{
++	static bool is_resume;
++	static bool first_call = true;
++
++	if (first_call) {
++#if 0
++		uint32_t time = 10;
++		uint8_t mpio_conf;
++
++		riic_setup();
++
++		while (time--) {
++			if ((riic_read(PMIC, 0x8D, &mpio_conf) < 0))
++				continue;
++
++			if (!(mpio_conf & 0x01))
++				break;
++
++			is_resume = true;
++
++			/* Reset default value */
++			if (riic_write(PMIC, 0x8D, 0x22) < 0) {
++				ERROR("RZ/V2H: Fail to resume system.\n");
++				panic();
++			}
++		}
++#else
++		INFO("MSRZV2H: PMIC not accessible by HW\n");
++		is_resume = true;
++#endif
++	}
++
++	first_call = false;
++	return is_resume;
++}
++
++void __attribute__ ((section(".sram")))
++pwrc_board_suspend_on(void)
++{
++#if 0
++	riic_setup();
++
++	riic_write(PMIC, 0x8D, 0x1);
++	riic_write(PMIC, 0x8A, 0xD);
++#endif
++}
+diff --git a/plat/renesas/rz/board/v2h_msrz/rz_board.mk b/plat/renesas/rz/board/v2h_msrz/rz_board.mk
+new file mode 100644
+index 000000000..4487af090
+--- /dev/null
++++ b/plat/renesas/rz/board/v2h_msrz/rz_board.mk
+@@ -0,0 +1,18 @@
++#
++# Copyright (c) 2023, Renesas Electronics Corporation. All rights reserved.
++#
++# SPDX-License-Identifier: BSD-3-Clause
++#
++
++DDR_SOURCES 		+=	plat/renesas/rz/soc/${PLAT}/drivers/ddr/ddr_setup_lpddr4.c	\
++						plat/renesas/rz/soc/${PLAT}/drivers/ddr/ddr_retcsr_lpddr4.c	\
++						plat/renesas/rz/soc/${PLAT}/drivers/ddr/ddr_param_def_lpddr4.c	\
++						plat/renesas/rz/soc/${PLAT}/drivers/ddr/ddr_param_def_lpddr4_ch1.c
++
++LPDDR4		:= 1
++DDR_PLL4	:=1600
++
++$(eval $(call add_define,DDR_PLL4))
++
++#Same power control as used on evk_alpha board so use those files
++BL_COMMON_SOURCES	+=	plat/renesas/rz/board/v2h_msrz/pwrc_board.c
+diff --git a/plat/renesas/rz/soc/v2h/drivers/ddr/ddr.c b/plat/renesas/rz/soc/v2h/drivers/ddr/ddr.c
+index 6e0402e8a..09967aad7 100644
+--- a/plat/renesas/rz/soc/v2h/drivers/ddr/ddr.c
++++ b/plat/renesas/rz/soc/v2h/drivers/ddr/ddr.c
+@@ -26,7 +26,7 @@ extern const uint32_t retention_mcreglist_size;
+ extern const char ddr_version_str[];
+ 
+ static void ddr_init(uint64_t ddraddr);
+-static void phyinit_c(void);
++static void phyinit_c(uint8_t base);
+ static void phyinit_d2h_1d(void);
+ static void phyinit_d2h_2d(void);
+ static void phyinit_mc(void);
+@@ -49,7 +49,10 @@ void ddr_setup(void)
+ 
+ static void ddr_init(uint64_t ddrbase)
+ {
++	uint8_t base = 0;
++
+ 	if (ddrbase == RZV2H_DDR0_BASE) {
++		base = 0;
+ 		set_ddrtop_mc_base_addr(RZV2H_DDR0_MEMC_BASE);
+ 		set_ddrphy_base_addr(RZV2H_DDR0_PHY_BASE);
+ 
+@@ -59,6 +62,7 @@ static void ddr_init(uint64_t ddrbase)
+ 
+ 		cpg_ddr0_part2();
+ 	} else if (ddrbase == RZV2H_DDR1_BASE) {
++		base = 1;
+ 		set_ddrtop_mc_base_addr(RZV2H_DDR1_MEMC_BASE);
+ 		set_ddrphy_base_addr(RZV2H_DDR1_PHY_BASE);
+ 
+@@ -71,7 +75,7 @@ static void ddr_init(uint64_t ddrbase)
+ 		panic();
+ 	}
+ 
+-	phyinit_c();
++	phyinit_c(base);
+ 
+ 	phyinit_d2h_1d();
+ 
+@@ -92,10 +96,14 @@ static void ddr_init(uint64_t ddrbase)
+ 	update_mc();
+ }
+ 
+-static void phyinit_c(void)
++static void phyinit_c(uint8_t base)
+ {
+ 	phyinit_configuration();
+-	phyinit_pin_swizzling();
++	if (base == 0) {
++		phyinit_pin_swizzling();
++	} else {
++		phyinit_pin_swizzling_ch1();
++	}
+ }
+ 
+ static void phyinit_d2h_1d(void)
+@@ -444,7 +452,7 @@ void ddr_retention_exit(uint8_t base)
+ 		cpg_ddr1_part2();
+ 	}
+ 
+-	phyinit_c();
++	phyinit_c(base);
+ 
+ 	restore_retcsr();
+ 
+diff --git a/plat/renesas/rz/soc/v2h/drivers/ddr/ddr_param_def_lpddr4.c b/plat/renesas/rz/soc/v2h/drivers/ddr/ddr_param_def_lpddr4.c
+index fd15457c0..fce3192b1 100644
+--- a/plat/renesas/rz/soc/v2h/drivers/ddr/ddr_param_def_lpddr4.c
++++ b/plat/renesas/rz/soc/v2h/drivers/ddr/ddr_param_def_lpddr4.c
+@@ -4,12 +4,13 @@
+  * SPDX-License-Identifier: BSD-3-Clause
+  */
+ 
+-// RZ/V2H, v3.0.2, L4X.R2W32X16D16S32.ADEE-0
++// RZ/V2H, v3.0.3, L4.R2W32X16D8S32.ADEE-0
+ 
+ #include <stdint.h>
+-#include <lib/utils_def.h>
+ 
+-const char ddr_version_str[] = "03.02";
++#define ARRAY_SIZE(array) (sizeof(array) / sizeof(array[0]))
++
++const char ddr_version_str[] = "03.03";
+ 
+ const uint32_t param_setup_mc[][2] = {
+ 	{0x0000, 0x00000b00},
+@@ -82,21 +83,21 @@ const uint32_t param_setup_mc[][2] = {
+ 	{0x0043, 0x01010001},
+ 	{0x0044, 0x00000003},
+ 	{0x0045, 0x00040301},
+-	{0x0046, 0x00000260},
++	{0x0046, 0x000001c0},
+ 	{0x0047, 0x00001863},
+-	{0x0048, 0x00000130},
++	{0x0048, 0x000000e0},
+ 	{0x0049, 0x00000c2e},
+-	{0x004a, 0x00000026},
++	{0x004a, 0x0000001c},
+ 	{0x004b, 0x0000017f},
+ 	{0x004c, 0x00000005},
+-	{0x004d, 0x00100130},
+-	{0x004e, 0x00980090},
++	{0x004d, 0x001000e0},
++	{0x004e, 0x00700090},
+ 	{0x004f, 0x00004808},
+-	{0x0050, 0x00040013},
+-	{0x0051, 0x01300009},
++	{0x0050, 0x0004000e},
++	{0x0051, 0x00e00009},
+ 	{0x0052, 0x00009010},
+-	{0x0053, 0x00080098},
+-	{0x0054, 0x00130048},
++	{0x0053, 0x00080070},
++	{0x0054, 0x000e0048},
+ 	{0x0055, 0x00000904},
+ 	{0x0056, 0x11010000},
+ 	{0x0057, 0x0006000c},
+@@ -106,9 +107,9 @@ const uint32_t param_setup_mc[][2] = {
+ 	{0x005b, 0x0a050503},
+ 	{0x005c, 0x02010303},
+ 	{0x005d, 0x00010101},
+-	{0x005e, 0x026c026c},
+-	{0x005f, 0x01360136},
+-	{0x0060, 0x00270027},
++	{0x005e, 0x01cc01cc},
++	{0x005f, 0x00e600e6},
++	{0x0060, 0x001d001d},
+ 	{0x0061, 0x08030318},
+ 	{0x0062, 0x0c0c080c},
+ 	{0x0063, 0x06050203},
+@@ -219,15 +220,15 @@ const uint32_t param_setup_mc[][2] = {
+ 	{0x00cc, 0x00000000},
+ 	{0x00cd, 0x00000000},
+ 	{0x00ce, 0x00000000},
+-	{0x00cf, 0x34340000},
+-	{0x00d0, 0x34343434},
+-	{0x00d1, 0x41414141},
+-	{0x00d2, 0x08084141},
+-	{0x00d3, 0x19191919},
+-	{0x00d4, 0x00001919},
++	{0x00cf, 0x46460000},
++	{0x00d0, 0x46464646},
++	{0x00d1, 0x47474747},
++	{0x00d2, 0x08084747},
++	{0x00d3, 0x47474747},
++	{0x00d4, 0x00004747},
+ 	{0x00d5, 0x00000000},
+-	{0x00d6, 0x2e060606},
+-	{0x00d7, 0x00202e2e},
++	{0x00d6, 0x16060606},
++	{0x00d7, 0x00201616},
+ 	{0x00d8, 0x00010000},
+ 	{0x00d9, 0x00000100},
+ 	{0x00da, 0x00000000},
+@@ -315,11 +316,11 @@ const uint32_t param_setup_mc[][2] = {
+ 	{0x012c, 0x00050028},
+ 	{0x012d, 0x01010100},
+ 	{0x012e, 0x00000202},
+-	{0x012f, 0x00000000},
+-	{0x0130, 0x7fff0000},
+-	{0x0131, 0x000fff00},
+-	{0x0132, 0xffff8000},
+-	{0x0133, 0x000fff00},
++	{0x012f, 0x00000101},
++	{0x0130, 0x3fff0000},
++	{0x0131, 0x0007ff00},
++	{0x0132, 0x7fff4000},
++	{0x0133, 0x0007ff00},
+ 	{0x0134, 0xff0b0000},
+ 	{0x0135, 0x010001ff},
+ 	{0x0136, 0x01010101},
+@@ -791,20 +792,20 @@ const uint32_t param_setup_mc[][2] = {
+ };
+ 
+ const uint32_t param_phyinit_c[][2] = {
+-	{0x0001005f, 0x0000055f},
+-	{0x0001015f, 0x0000055f},
+-	{0x0001105f, 0x0000055f},
+-	{0x0001115f, 0x0000055f},
+-	{0x0001205f, 0x0000055f},
+-	{0x0001215f, 0x0000055f},
+-	{0x0001305f, 0x0000055f},
+-	{0x0001315f, 0x0000055f},
+-	{0x00000055, 0x0000015f},
+-	{0x00001055, 0x0000015f},
+-	{0x00002055, 0x0000015f},
+-	{0x00003055, 0x0000015f},
+-	{0x00004055, 0x0000015f},
+-	{0x00005055, 0x0000015f},
++	{0x0001005f, 0x0000017f},
++	{0x0001015f, 0x0000017f},
++	{0x0001105f, 0x0000017f},
++	{0x0001115f, 0x0000017f},
++	{0x0001205f, 0x0000017f},
++	{0x0001215f, 0x0000017f},
++	{0x0001305f, 0x0000017f},
++	{0x0001315f, 0x0000017f},
++	{0x00000055, 0x0000017f},
++	{0x00001055, 0x0000017f},
++	{0x00002055, 0x0000017f},
++	{0x00003055, 0x0000017f},
++	{0x00004055, 0x0000017f},
++	{0x00005055, 0x0000017f},
+ 	{0x000200c5, 0x00000019},
+ 	{0x000200ca, 0x00000024},
+ 	{0x000200c7, 0x00000021},
+@@ -816,31 +817,31 @@ const uint32_t param_phyinit_c[][2] = {
+ 	{0x0002007d, 0x00000212},
+ 	{0x0002007c, 0x00000061},
+ 	{0x00020056, 0x00000003},
+-	{0x0001004d, 0x00000600},
+-	{0x0001014d, 0x00000600},
+-	{0x0001104d, 0x00000600},
+-	{0x0001114d, 0x00000600},
+-	{0x0001204d, 0x00000600},
+-	{0x0001214d, 0x00000600},
+-	{0x0001304d, 0x00000600},
+-	{0x0001314d, 0x00000600},
+-	{0x00010049, 0x00000e00},
+-	{0x00010149, 0x00000e00},
+-	{0x00011049, 0x00000e00},
+-	{0x00011149, 0x00000e00},
+-	{0x00012049, 0x00000e00},
+-	{0x00012149, 0x00000e00},
+-	{0x00013049, 0x00000e00},
+-	{0x00013149, 0x00000e00},
+-	{0x00000043, 0x00000060},
+-	{0x00001043, 0x00000060},
+-	{0x00002043, 0x00000060},
+-	{0x00003043, 0x00000060},
+-	{0x00004043, 0x00000060},
+-	{0x00005043, 0x00000060},
++	{0x0001004d, 0x00000e00},
++	{0x0001014d, 0x00000e00},
++	{0x0001104d, 0x00000e00},
++	{0x0001114d, 0x00000e00},
++	{0x0001204d, 0x00000e00},
++	{0x0001214d, 0x00000e00},
++	{0x0001304d, 0x00000e00},
++	{0x0001314d, 0x00000e00},
++	{0x00010049, 0x00000e3f},
++	{0x00010149, 0x00000e3f},
++	{0x00011049, 0x00000e3f},
++	{0x00011149, 0x00000e3f},
++	{0x00012049, 0x00000e3f},
++	{0x00012149, 0x00000e3f},
++	{0x00013049, 0x00000e3f},
++	{0x00013149, 0x00000e3f},
++	{0x00000043, 0x0000003d},
++	{0x00001043, 0x0000003d},
++	{0x00002043, 0x0000003d},
++	{0x00003043, 0x0000003d},
++	{0x00004043, 0x0000003d},
++	{0x00005043, 0x0000003d},
+ 	{0x00020018, 0x00000003},
+ 	{0x00020075, 0x00000004},
+-	{0x00020050, 0x00000000},
++	{0x00020050, 0x00000011},
+ 	{0x0002009b, 0x00000002},
+ 	{0x00020008, 0x00000320},
+ 	{0x00020088, 0x00000009},
+@@ -883,11 +884,11 @@ const uint16_t param_phyinit_1d_dat1[] = {
+ 	0x0000, 0x0000, 0x0000, 0x0c80, 0x0002, 0x0000, 0x0015, 0x0000,
+ 	0x131f, 0x00ff, 0x0000, 0x0002, 0x0000, 0x0000, 0x0000, 0x0100,
+ 	0x0000, 0x0000, 0x0310, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+-	0x0000, 0x2d54, 0x00b1, 0x4134, 0x1908, 0x0000, 0x0006, 0x2d54,
+-	0x00b1, 0x4134, 0x1908, 0x0000, 0x002e, 0x0000, 0x0000, 0x0000,
++	0x0000, 0x2d54, 0x00b1, 0x4746, 0x4708, 0x0000, 0x0006, 0x2d54,
++	0x00b1, 0x4746, 0x4708, 0x0000, 0x0016, 0x0000, 0x0000, 0x0000,
+ 	0x0000, 0x0000, 0x0000, 0x1000, 0x0003, 0x0000, 0x0000, 0x0000,
+-	0x0000, 0x0000, 0x5400, 0xb12d, 0x3400, 0x0841, 0x0019, 0x0600,
+-	0x5400, 0xb12d, 0x3400, 0x0841, 0x0019, 0x2e00, 0x0000, 0x0000,
++	0x0000, 0x0000, 0x5400, 0xb12d, 0x4600, 0x0847, 0x0047, 0x0600,
++	0x5400, 0xb12d, 0x4600, 0x0847, 0x0047, 0x1600, 0x0000, 0x0000,
+ 	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+ 	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+ 	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+@@ -990,11 +991,11 @@ const uint16_t param_phyinit_2d_dat1[] = {
+ 	0x0000, 0x0000, 0x0000, 0x0c80, 0x0002, 0x0000, 0x0015, 0x0000,
+ 	0x0061, 0x00ff, 0x0000, 0x0002, 0x0000, 0x0000, 0x0000, 0x0100,
+ 	0x2080, 0x0000, 0x0310, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+-	0x0000, 0x2d54, 0x00b1, 0x4134, 0x1908, 0x0000, 0x0006, 0x2d54,
+-	0x00b1, 0x4134, 0x1908, 0x0000, 0x002e, 0x0000, 0x0000, 0x0000,
++	0x0000, 0x2d54, 0x00b1, 0x4746, 0x4708, 0x0000, 0x0006, 0x2d54,
++	0x00b1, 0x4746, 0x4708, 0x0000, 0x0016, 0x0000, 0x0000, 0x0000,
+ 	0x0000, 0x0000, 0x0000, 0x1000, 0x0003, 0x0000, 0x0000, 0x0000,
+-	0x0000, 0x0000, 0x5400, 0xb12d, 0x3400, 0x0841, 0x0019, 0x0600,
+-	0x5400, 0xb12d, 0x3400, 0x0841, 0x0019, 0x2e00, 0x0000, 0x0000,
++	0x0000, 0x0000, 0x5400, 0xb12d, 0x4600, 0x0847, 0x0047, 0x0600,
++	0x5400, 0xb12d, 0x4600, 0x0847, 0x0047, 0x1600, 0x0000, 0x0000,
+ 	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+ 	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+ 	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+@@ -5324,28 +5325,28 @@ const uint32_t param_phyinit_swizzle[][2] = {
+ 	{0x000100a5, 0x00000005},
+ 	{0x000100a6, 0x00000006},
+ 	{0x000100a7, 0x00000007},
+-	{0x000110a0, 0x00000006},
+-	{0x000110a1, 0x00000004},
+-	{0x000110a2, 0x00000000},
++	{0x000110a0, 0x00000004},
++	{0x000110a1, 0x00000001},
++	{0x000110a2, 0x00000002},
+ 	{0x000110a3, 0x00000003},
+-	{0x000110a4, 0x00000001},
++	{0x000110a4, 0x00000007},
+ 	{0x000110a5, 0x00000005},
+-	{0x000110a6, 0x00000002},
+-	{0x000110a7, 0x00000007},
+-	{0x000120a0, 0x00000005},
+-	{0x000120a1, 0x00000001},
+-	{0x000120a2, 0x00000004},
+-	{0x000120a3, 0x00000003},
+-	{0x000120a4, 0x00000000},
+-	{0x000120a5, 0x00000002},
++	{0x000110a6, 0x00000000},
++	{0x000110a7, 0x00000006},
++	{0x000120a0, 0x00000003},
++	{0x000120a1, 0x00000002},
++	{0x000120a2, 0x00000000},
++	{0x000120a3, 0x00000001},
++	{0x000120a4, 0x00000007},
++	{0x000120a5, 0x00000004},
+ 	{0x000120a6, 0x00000006},
+-	{0x000120a7, 0x00000007},
++	{0x000120a7, 0x00000005},
+ 	{0x000130a0, 0x00000000},
+-	{0x000130a1, 0x00000003},
++	{0x000130a1, 0x00000005},
+ 	{0x000130a2, 0x00000002},
+-	{0x000130a3, 0x00000005},
++	{0x000130a3, 0x00000001},
+ 	{0x000130a4, 0x00000004},
+-	{0x000130a5, 0x00000001},
++	{0x000130a5, 0x00000003},
+ 	{0x000130a6, 0x00000006},
+ 	{0x000130a7, 0x00000007},
+ };
+@@ -5358,3 +5359,4 @@ const uint32_t param_phyinit_i_size = ARRAY_SIZE(param_phyinit_i);
+ const uint32_t param_phyinit_1d_dat0_size = ARRAY_SIZE(param_phyinit_1d_dat0);
+ const uint32_t param_phyinit_2d_dat0_size = ARRAY_SIZE(param_phyinit_2d_dat0);
+ const uint32_t param_phyinit_swizzle_size = ARRAY_SIZE(param_phyinit_swizzle);
++
+diff --git a/plat/renesas/rz/soc/v2h/drivers/ddr/ddr_param_def_lpddr4_ch1.c b/plat/renesas/rz/soc/v2h/drivers/ddr/ddr_param_def_lpddr4_ch1.c
+new file mode 100644
+index 000000000..159802d64
+--- /dev/null
++++ b/plat/renesas/rz/soc/v2h/drivers/ddr/ddr_param_def_lpddr4_ch1.c
+@@ -0,0 +1,55 @@
++/*
++ * Copyright (c) 2024, Renesas Electronics Corporation. All rights reserved.
++ *
++ * SPDX-License-Identifier: BSD-3-Clause
++ */
++
++#include <stdint.h>
++#include "rz_soc_def.h"
++
++const uint32_t param_phyinit_swizzle_ch1[][2] = {
++	{0x00020100, 0x00000000},
++	{0x00020101, 0x00000004},
++	{0x00020102, 0x00000001},
++	{0x00020103, 0x00000003},
++	{0x00020104, 0x00000002},
++	{0x00020105, 0x00000005},
++	{0x00020110, 0x00000000},
++	{0x00020111, 0x00000005},
++	{0x00020112, 0x00000004},
++	{0x00020113, 0x00000002},
++	{0x00020114, 0x00000003},
++	{0x00020115, 0x00000001},
++	{0x000100a0, 0x00000000},
++	{0x000100a1, 0x00000001},
++	{0x000100a2, 0x00000005},
++	{0x000100a3, 0x00000004},
++	{0x000100a4, 0x00000003},
++	{0x000100a5, 0x00000002},
++	{0x000100a6, 0x00000006},
++	{0x000100a7, 0x00000007},
++	{0x000110a0, 0x00000000},
++	{0x000110a1, 0x00000001},
++	{0x000110a2, 0x00000002},
++	{0x000110a3, 0x00000003},
++	{0x000110a4, 0x00000005},
++	{0x000110a5, 0x00000004},
++	{0x000110a6, 0x00000006},
++	{0x000110a7, 0x00000007},
++	{0x000120a0, 0x00000005},
++	{0x000120a1, 0x00000001},
++	{0x000120a2, 0x00000002},
++	{0x000120a3, 0x00000003},
++	{0x000120a4, 0x00000004},
++	{0x000120a5, 0x00000000},
++	{0x000120a6, 0x00000007},
++	{0x000120a7, 0x00000006},
++	{0x000130a0, 0x00000000},
++	{0x000130a1, 0x00000001},
++	{0x000130a2, 0x00000002},
++	{0x000130a3, 0x00000003},
++	{0x000130a4, 0x00000004},
++	{0x000130a5, 0x00000005},
++	{0x000130a6, 0x00000007},
++	{0x000130a7, 0x00000006},
++};
+diff --git a/plat/renesas/rz/soc/v2h/drivers/ddr/ddr_private.h b/plat/renesas/rz/soc/v2h/drivers/ddr/ddr_private.h
+index e86d6ad20..b47787938 100644
+--- a/plat/renesas/rz/soc/v2h/drivers/ddr/ddr_private.h
++++ b/plat/renesas/rz/soc/v2h/drivers/ddr/ddr_private.h
+@@ -57,5 +57,6 @@ extern void phyinit_exec_1d_image(void);
+ extern void phyinit_load_2d_image(void);
+ extern void phyinit_exec_2d_image(void);
+ extern void phyinit_load_eng_image(void);
++extern void phyinit_pin_swizzling_ch1(void);
+ 
+ #endif /* __DDR_PRIVATE_H__ */
+diff --git a/plat/renesas/rz/soc/v2h/drivers/ddr/ddr_setup_lpddr4.c b/plat/renesas/rz/soc/v2h/drivers/ddr/ddr_setup_lpddr4.c
+index 44751ec2d..f0a519c7a 100644
+--- a/plat/renesas/rz/soc/v2h/drivers/ddr/ddr_setup_lpddr4.c
++++ b/plat/renesas/rz/soc/v2h/drivers/ddr/ddr_setup_lpddr4.c
+@@ -19,6 +19,8 @@ extern const uint16_t param_phyinit_1d_dat1[];
+ extern const uint16_t param_phyinit_2d_dat1[];
+ extern const uint32_t param_setup_mc[][2];
+ 
++extern const uint32_t param_phyinit_swizzle_ch1[][2];
++
+ extern const uint32_t param_phyinit_swizzle_size;
+ extern const uint32_t param_phyinit_c_size;
+ extern const uint32_t param_phyinit_i_size;
+@@ -72,6 +74,15 @@ void phyinit_pin_swizzling(void)
+ 	}
+ }
+ 
++void phyinit_pin_swizzling_ch1(void)
++{
++	size_t i;
++
++	for (i = 0; i < param_phyinit_swizzle_size; i++) {
++		 dwc_ddrphy_apb_wr(param_phyinit_swizzle_ch1[i][0], param_phyinit_swizzle_ch1[i][1]);
++	}
++}
++
+ void phyinit_load_1d_image(void)
+ {
+ 	size_t i;
+-- 
+2.34.1
+
