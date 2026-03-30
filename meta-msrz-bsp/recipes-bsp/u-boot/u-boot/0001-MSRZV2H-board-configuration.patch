@@ -1,4 +1,4 @@
-From 8d0a517e5a06a2737ca0b8a83e9cdfc2f2aa04a8 Mon Sep 17 00:00:00 2001
+From 35cc3fd75024f0b1507678e8109ec9c45356f71a Mon Sep 17 00:00:00 2001
 From: Wolfgang Grandegger <wg@aries-embedded.de>
 Date: Fri, 13 Feb 2026 18:27:14 +0100
 Subject: [PATCH] MSRZV2H board configuration
@@ -9,14 +9,14 @@ V2Hberry base board.
 Signed-off-by: Wolfgang Grandegger <wg@aries-embedded.de>
 ---
  arch/arm/dts/Makefile               |   1 +
- arch/arm/dts/msrzv2hberry.dts       | 735 ++++++++++++++++++++++++++++
+ arch/arm/dts/msrzv2hberry.dts       | 736 ++++++++++++++++++++++++++++
  arch/arm/mach-renesas/Kconfig.rcar3 |   6 +
  board/aries/msrzv2h/Kconfig         |  15 +
  board/aries/msrzv2h/Makefile        |  13 +
  board/aries/msrzv2h/msrzv2h.c       | 324 ++++++++++++
  configs/msrzv2hberry_defconfig      | 189 +++++++
  include/configs/msrzv2hberry.h      |  68 +++
- 8 files changed, 1351 insertions(+)
+ 8 files changed, 1352 insertions(+)
  create mode 100644 arch/arm/dts/msrzv2hberry.dts
  create mode 100644 board/aries/msrzv2h/Kconfig
  create mode 100644 board/aries/msrzv2h/Makefile
@@ -38,10 +38,10 @@ index 6048d18c65..681f999307 100644
  	rzv2h-evk-ver1.dtb \
 diff --git a/arch/arm/dts/msrzv2hberry.dts b/arch/arm/dts/msrzv2hberry.dts
 new file mode 100644
-index 0000000000..df965c8858
+index 0000000000..a7883b02ec
 --- /dev/null
 +++ b/arch/arm/dts/msrzv2hberry.dts
-@@ -0,0 +1,735 @@
+@@ -0,0 +1,736 @@
 +// SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
 +/*
 + * Device Tree Source for the RZ/V2H EVK ver1 board
@@ -55,7 +55,7 @@ index 0000000000..df965c8858
 +#include <dt-bindings/gpio/gpio.h>
 +
 +/ {
-+	model = "ARIES Embedded MSRZV2H module on V2Hberry base board";
++	model = "ARIES Embedded MSRZV2H module on V2Hberry base board v2";
 +	compatible = "aries,msrzv2hberry", "renesas,r9a09g057h4", "renesas,r9a09g057";
 +
 +	aliases {
@@ -78,13 +78,14 @@ index 0000000000..df965c8858
 +	memory@48000000 {
 +		device_type = "memory";
 +		/* first 128MB is reserved for secure area. */
-+		reg = <0x0 0x48000000 0x1 0xF8000000>;
++		//reg = <0x0 0x48000000 0x1 0xF8000000>;
++		reg = <0x0 0x48000000 0x0 0xF8000000>;
 +	};
 +
-+	//memory@240000000 {
-+	//	device_type = "memory";
-+	//	reg = <0x2 0x40000000 0x1 0x00000000>;
-+	//};
++	memory@240000000 {
++		device_type = "memory";
++		reg = <0x2 0x40000000 0x1 0x00000000>;
++	};
 +
 +	reserved-memory {
 +		#address-cells = <2>;
